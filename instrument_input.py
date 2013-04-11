@@ -1,5 +1,5 @@
 '''
-Keyboard input module
+Instrument input module
 '''
 
 class InstrumentState(object):

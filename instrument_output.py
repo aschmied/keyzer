@@ -1,5 +1,5 @@
 '''
-MIDI keyboard output module
+Instrument output module
 '''
 
 import rtmidi

@@ -4,6 +4,8 @@ RTMIDI interfacing details
 import rtmidi
 import sys
 
+from util.attachables import Attachable
+
 class MidiPort(object):
     
     def __init__(self, number, name):
@@ -21,16 +23,11 @@ class MidiInputHandler(object):
     def __init__(self, callback):
         self._callback = callback
 
-    def __call__(self, event, data=None):
-        message, _deltatime = event
-        note, velocity = MessageDecoder.decode(message)
-        if note is None: return
-        self._callback(note, velocity)
-        
 
-class InputConnection(object):
+class InputConnection(Attachable):
     
     def __init__(self):
+        super().__init__()
         self._midiInput = rtmidi.MidiIn()
         self._connectedPort = None
         self._availablePorts = []
@@ -48,12 +45,24 @@ class InputConnection(object):
     def getAvailablePorts(self):
         return self._availablePorts
     
-    def openPort(self, port, callback):
+    '''
+    object must implement midi event callback interface 
+    '''
+    def attach(self, objectToAttach):
+        super().attach(objectToAttach)
+    
+    def openPort(self, port):
         self._midiInput.open_port(port.getNumber())
         self._connectedPort = port
-        #self._midiInput.set_callback(self._eventCallback)
-        self._midiInput.set_callback(MidiInputHandler(callback))
+        self._midiInput.set_callback(self._midiEventCallback)
         
+    def _midiEventCallback(self, event, data=None):
+        message, _deltatime = event
+        note, velocity = MessageDecoder.decode(message)
+        if note is None: return
+        for a in super()._getAttached():
+            a.midiMessage(note, velocity)
+    
     def closePort(self):
         self._midiInput.close_port()
         del self._midiInput
