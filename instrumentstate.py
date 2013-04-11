@@ -1,7 +1,3 @@
-'''
-Instrument input module
-'''
-
 class InstrumentState(object):
     
     _notes = 88 * [0]
@@ -19,7 +15,7 @@ class InstrumentState(object):
         InstrumentState.setNote(noteIndex, 0)
     
     @staticmethod
-    def midiMessage(note, velocity):
+    def onInstrumentEvent(note, velocity):
         InstrumentState._notes[note] = velocity
         print(note, velocity)
         

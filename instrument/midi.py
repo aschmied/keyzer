@@ -27,13 +27,13 @@ class MidiInputHandler(object):
 class InputConnection(Attachable):
     
     def __init__(self):
-        super().__init__()
+        super(InputConnection, self).__init__()
         self._midiInput = rtmidi.MidiIn()
         self._connectedPort = None
         self._availablePorts = []
 
     def probeMidiPorts(self):
-        self._availablePorts.clear()
+        self._availablePorts = []
         portNames = self._midiInput.get_ports(
             encoding=('latin1' if sys.platform.startswith('win') else 'utf-8'))
         if not portNames:
@@ -46,10 +46,10 @@ class InputConnection(Attachable):
         return self._availablePorts
     
     '''
-    object must implement midi event callback interface 
+    object must implement instrument event callback interface 
     '''
     def attach(self, objectToAttach):
-        super().attach(objectToAttach)
+        super(InputConnection, self).attach(objectToAttach)
     
     def openPort(self, port):
         self._midiInput.open_port(port.getNumber())
@@ -60,8 +60,8 @@ class InputConnection(Attachable):
         message, _deltatime = event
         note, velocity = MessageDecoder.decode(message)
         if note is None: return
-        for a in super()._getAttached():
-            a.midiMessage(note, velocity)
+        for a in super(InputConnection, self)._getAttached():
+            a.onInstrumentEvent(note, velocity)
     
     def closePort(self):
         self._midiInput.close_port()
@@ -99,7 +99,7 @@ class OutputConnection(object):
         self._availablePorts = []
 
     def probeMidiPorts(self):
-        self._availablePorts.clear()
+        self._availablePorts = []
         portNames = self._midiOutput.get_ports(
             encoding=('latin1' if sys.platform.startswith('win') else 'utf-8'))
         if not portNames:
