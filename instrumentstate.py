@@ -4,11 +4,11 @@ class InstrumentState(object):
     
     @staticmethod
     def getNote(noteIndex):
-        return InstrumentState._keys[noteIndex]
+        return InstrumentState._notes[noteIndex]
     
     @staticmethod
     def setNote(noteIndex, velocity):
-        InstrumentState._keys[noteIndex] = velocity
+        InstrumentState._notes[noteIndex] = velocity
     
     @staticmethod
     def unsetNote(noteIndex):

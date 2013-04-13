@@ -3,7 +3,7 @@ from pyglet.window import key
 from util.attachables import Attachable 
 
 
-class keyPressToMusicEventMapper(Attachable):
+class KeyPressToMusicEventMapper(Attachable):
     '''
     Maps computer keyboard events to music events.
     Useful for testing and debugging without a MIDI device.
@@ -41,21 +41,21 @@ class keyPressToMusicEventMapper(Attachable):
     }
     
     def __init__(self):
-        super(keyPressToMusicEventMapper, self).__init__()
+        super(KeyPressToMusicEventMapper, self).__init__()
     
     def attach(self, objectToAttach):
         '''objectToAttach must implement the music event handler interface'''
-        super(keyPressToMusicEventMapper, self).attach(objectToAttach)
+        super(KeyPressToMusicEventMapper, self).attach(objectToAttach)
         
     def onKeyDown(self, symbol, modifiers):
         note = self._keyToNote.get(symbol)
         if note is None: return
-        for a in super(keyPressToMusicEventMapper, self)._getAttached():
+        for a in super(KeyPressToMusicEventMapper, self)._getAttached():
             a.onInstrumentEvent(note, 100)
     
     def onKeyUp(self, symbol, modifiers):
         note = self._keyToNote.get(symbol)
         if note is None: return
-        for a in super(keyPressToMusicEventMapper, self)._getAttached():
+        for a in super(KeyPressToMusicEventMapper, self)._getAttached():
             a.onInstrumentEvent(note, 0)
     
