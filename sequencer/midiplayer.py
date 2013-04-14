@@ -1,6 +1,7 @@
 import time
 import midi
 from util.attachables import Attachable
+import instrument
 
 _DEFAULT_BEATSPERMIN = 165
 
@@ -18,6 +19,11 @@ class MidiPlayer(Attachable):
         super(MidiPlayer, self).attach(objectToAttach)
 
     def play(self):
+        midiout = instrument.midi.OutputConnection()
+        midiout.openPort(midiout.probeMidiPorts()[0])
+        self.attach(midiout)
+        
+
         events = self.getSortedEvents()
         beatsPerMin = _DEFAULT_BEATSPERMIN
         tick = 0

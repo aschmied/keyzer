@@ -1,5 +1,6 @@
 import sys
 import time
+import threading
 
 from ui.assetmanager import Assets
 from ui.keyboard import Keyboard
@@ -24,12 +25,19 @@ if __name__ == '__main__':
         #midiin.attach(InstrumentState)
         #midiin.openPort(midiin.probeMidiPorts()[0])
 
-        midiout = midi.OutputConnection()
-        midiout.openPort(midiout.probeMidiPorts()[0])
-        midiplayer = midiplayer.MidiPlayer("/Users/anthonyschmieder/Dropbox/"
-                                  "music/midi/chet_atkins_windy_and_warm.mid")
-        midiplayer.attach(midiout)
-        midiplayer.play()
+        #midiout = midi.OutputConnection()
+        #midiout.openPort(midiout.probeMidiPorts()[0])
+        #song = ("/Users/anthonyschmieder/Dropbox/"
+                #"music/midi/midi_parts.mid")
+        song = ("/Users/anthonyschmieder/Dropbox/"
+                 "music/midi/chet_atkins_windy_and_warm.mid")
+        midiplayer = midiplayer.MidiPlayer(song)
+        #midiplayer.attach(midiout)
+        #midiplayer.play()
+        threading.Thread(target=midiplayer.play).start()
+        #midiplayerThread = threading.Thread(target=midiplayer.play)
+        #midiplayerThread.start()
+        print("started")
 
 
         #midiin.closePort()
