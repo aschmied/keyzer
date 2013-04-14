@@ -11,7 +11,6 @@ class PianoKeyUp(pyglet.sprite.Sprite):
     def update(self, dt):
         velocity = InstrumentState.getNote(self._noteIndex)
         self.visible = (velocity == 0)
-        print("PianoKeyUp.update: noteIndex {0} velocity {1}".format(self._noteIndex, velocity))
             
 class PianoKeyDown(pyglet.sprite.Sprite):
     def __init__(self, image, x, y, noteIndex, batch=None, group=None):
@@ -23,7 +22,6 @@ class PianoKeyDown(pyglet.sprite.Sprite):
     def update(self, dt):
         velocity = InstrumentState.getNote(self._noteIndex)
         self.visible = (velocity > 0)
-        print("PianoKeyDown.update: noteIndex {0} velocity {1}".format(self._noteIndex, velocity))
     
 class PianoKeyboard(pyglet.graphics.Batch):
     def __init__(self, x, y):
