@@ -1,5 +1,6 @@
 '''
-RTMIDI interfacing details
+RTMIDI interfacing details. Handles input/output connections and raw MIDI
+events.
 '''
 import rtmidi
 import sys
@@ -17,11 +18,6 @@ class MidiPort(object):
             
     def getName(self):
         return self._name
-
-
-class MidiInputHandler(object):
-    def __init__(self, callback):
-        self._callback = callback
 
 
 class InputConnection(Attachable):
@@ -45,10 +41,8 @@ class InputConnection(Attachable):
     def getAvailablePorts(self):
         return self._availablePorts
     
-    '''
-    object must implement instrument event callback interface 
-    '''
     def attach(self, objectToAttach):
+        '''object must implement instrument event callback interface'''
         super(InputConnection, self).attach(objectToAttach)
     
     def openPort(self, port):
@@ -118,7 +112,7 @@ class OutputConnection(object):
         self._midiOutput.close_port()
         del self._midiOutput
     
-    def sendMidiEvent(self, status, midiNote, velocity):
+    def handleMidiEvent(self, status, midiNote, velocity):
         self._midiOutput.send_message([status, midiNote, velocity])
 
     def sendNoteOnEvent(self, midiNote, velocity):

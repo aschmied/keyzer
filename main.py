@@ -5,26 +5,37 @@ from ui.assetmanager import Assets
 from ui.keyboard import Keyboard
 from ui.applicationwindow import ApplicationWindow
 from instrument.keyboard import KeyPressToMusicEventMapper
-#from instrument import midi
+from instrument import midi
 from instrumentstate import InstrumentState
+from sequencer import midiplayer
 
 if __name__ == '__main__':
 
-    Assets.loadAssets()
-    app = ApplicationWindow()
+    #Assets.loadAssets()
+    #app = ApplicationWindow()
 
-    runType = "k"
+    runType = ""
     if runType == "k":
         keyPressToMusicEventMapper = KeyPressToMusicEventMapper()
         app.attachToKeyboard(keyPressToMusicEventMapper)
         keyPressToMusicEventMapper.attach(InstrumentState)
     else:
-        midiin = midi.InputConnection()
-        midiin.attach(InstrumentState)
-        midiin.openPort(midiin.probeMidiPorts()[0])
-        midiin.closePort()
+        #midiin = midi.InputConnection()
+        #midiin.attach(InstrumentState)
+        #midiin.openPort(midiin.probeMidiPorts()[0])
 
-    app.start()
+        midiout = midi.OutputConnection()
+        midiout.openPort(midiout.probeMidiPorts()[0])
+        midiplayer = midiplayer.MidiPlayer("/Users/anthonyschmieder/Dropbox/"
+                                  "music/midi/chet_atkins_windy_and_warm.mid")
+        midiplayer.attach(midiout)
+        midiplayer.play()
+
+
+        #midiin.closePort()
+        midiout.closePort()
+
+    #app.start()
     
     if False:
     
