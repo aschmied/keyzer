@@ -1,25 +1,30 @@
 import sys
 import time
 
+from ui.assetmanager import Assets
 from ui.keyboard import Keyboard
 from ui.applicationwindow import ApplicationWindow
 from instrument.keyboard import KeyPressToMusicEventMapper
-from instrument import midi
+#from instrument import midi
 from instrumentstate import InstrumentState
 
 if __name__ == '__main__':
 
-    sys.path.append("/Users/anthonyschmieder/src/pyglet-1.2alpha1")
-    
+    Assets.loadAssets()
     app = ApplicationWindow()
-    #keyPressToMusicEventMapper = KeyPressToMusicEventMapper()
-    #app.attachToKeyboard(keyPressToMusicEventMapper)
-    #keyPressToMusicEventMapper.attach(InstrumentState)
-    midiin = midi.InputConnection()
-    midiin.attach(InstrumentState)
-    midiin.openPort(midiin.probeMidiPorts()[0])
+
+    runType = "k"
+    if runType == "k":
+        keyPressToMusicEventMapper = KeyPressToMusicEventMapper()
+        app.attachToKeyboard(keyPressToMusicEventMapper)
+        keyPressToMusicEventMapper.attach(InstrumentState)
+    else:
+        midiin = midi.InputConnection()
+        midiin.attach(InstrumentState)
+        midiin.openPort(midiin.probeMidiPorts()[0])
+        midiin.closePort()
+
     app.start()
-    midiin.closePort()
     
     if False:
     
