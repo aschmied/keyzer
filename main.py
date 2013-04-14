@@ -9,11 +9,12 @@ from instrument.keyboard import KeyPressToMusicEventMapper
 from instrument import midi
 from instrumentstate import InstrumentState
 from sequencer import midiplayer
+from playingsongstate import PlayingSongState
 
 if __name__ == '__main__':
 
-    #Assets.loadAssets()
-    #app = ApplicationWindow()
+    Assets.loadAssets()
+    app = ApplicationWindow()
 
     runType = ""
     if runType == "k":
@@ -21,29 +22,21 @@ if __name__ == '__main__':
         app.attachToKeyboard(keyPressToMusicEventMapper)
         keyPressToMusicEventMapper.attach(InstrumentState)
     else:
-        #midiin = midi.InputConnection()
-        #midiin.attach(InstrumentState)
-        #midiin.openPort(midiin.probeMidiPorts()[0])
+        midiin = midi.InputConnection()
+        midiin.attach(InstrumentState)
+        midiin.openPort(midiin.probeMidiPorts()[0])
 
-        #midiout = midi.OutputConnection()
-        #midiout.openPort(midiout.probeMidiPorts()[0])
         #song = ("/Users/anthonyschmieder/Dropbox/"
                 #"music/midi/midi_parts.mid")
         song = ("/Users/anthonyschmieder/Dropbox/"
                  "music/midi/chet_atkins_windy_and_warm.mid")
         midiplayer = midiplayer.MidiPlayer(song)
-        #midiplayer.attach(midiout)
-        #midiplayer.play()
+        midiplayer.attach(PlayingSongState)
         threading.Thread(target=midiplayer.play).start()
-        #midiplayerThread = threading.Thread(target=midiplayer.play)
-        #midiplayerThread.start()
-        print("started")
 
 
-        #midiin.closePort()
-        midiout.closePort()
-
-    #app.start()
+    app.start()
+    midiin.closePort()
     
     if False:
     

@@ -4,6 +4,7 @@ from util.attachables import Attachable
 import instrument
 
 _DEFAULT_BEATSPERMIN = 165
+_FRAMES_PER_SECOND = 60
 
 class MidiPlayer(Attachable):
 
@@ -15,29 +16,28 @@ class MidiPlayer(Attachable):
         self._pattern.make_ticks_abs()
 
     def attach(self, objectToAttach):
-        """objectToAttach must implement the midi event callback interface"""
+        """objectToAttach must implement the tick update callback interface"""
         super(MidiPlayer, self).attach(objectToAttach)
 
     def play(self):
-        midiout = instrument.midi.OutputConnection()
-        midiout.openPort(midiout.probeMidiPorts()[0])
-        self.attach(midiout)
+        self._initializeMidiOutput()
         
-
         events = self.getSortedEvents()
         beatsPerMin = _DEFAULT_BEATSPERMIN
-        tick = 0
+        currentTick = 0
         for event in events:
-            eventTick = event.tick
-            ticksDiff = eventTick - tick
-            tick = eventTick
-            secondsDiff = self.ticksToSeconds(beatsPerMin, ticksDiff)
-            time.sleep(secondsDiff)
+            ticksBeforeNextEvent = event.tick - currentTick
+            currentTick = event.tick
+            secondsBeforeNextEvent = \
+                    self.ticksToSeconds(beatsPerMin, ticksBeforeNextEvent)
+            time.sleep(secondsBeforeNextEvent)
             rawMidiEvent = _PyMidiEventToRawMidiEvent.convert(event)
-            print(event, rawMidiEvent)
             if rawMidiEvent is not None:
-                for a in self._getAttached():
-                    a.handleMidiEvent(*rawMidiEvent)
+                self._midiout.handleMidiEvent(*rawMidiEvent)
+            for a in self._getAttached():
+                a.onTickUpdate(currentTick)
+        
+        self._finalizeMidiOutput()
 
     def getSortedEvents(self):
         events = []
@@ -52,6 +52,12 @@ class MidiPlayer(Attachable):
         ticksPerSec = ticksPerMin / 60.
         return ticks / ticksPerSec
 
+    def _initializeMidiOutput(self):
+        self._midiout = instrument.midi.OutputConnection()
+        self._midiout.openPort(self._midiout.probeMidiPorts()[0])
+
+    def _finalizeMidiOutput(self):
+        self._midiout.closePort()
 
 class _PyMidiEventToRawMidiEvent(object):
 
