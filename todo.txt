@@ -1,1 +1,3 @@
 -debug the segfault in the inputs pyglet example
+-add debugging messages using logging package after rtmidi/examples/midifilter.py
+

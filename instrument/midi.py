@@ -112,8 +112,8 @@ class OutputConnection(object):
         self._midiOutput.close_port()
         del self._midiOutput
     
-    def handleMidiEvent(self, status, midiNote, velocity):
-        self._midiOutput.send_message([status, midiNote, velocity])
+    def handleMidiEvent(self, message):
+        self._midiOutput.send_message(message)
 
     def sendNoteOnEvent(self, midiNote, velocity):
         self.sendMidiEvent(MessageDecoder.statuses['noteon'], midiNote, velocity)

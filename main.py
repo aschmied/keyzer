@@ -28,8 +28,10 @@ if __name__ == '__main__':
 
         #song = ("/Users/anthonyschmieder/Dropbox/"
                 #"music/midi/midi_parts.mid")
-        song = ("/Users/anthonyschmieder/Dropbox/"
-                 "music/midi/chet_atkins_windy_and_warm.mid")
+        #song = ("/Users/anthonyschmieder/Dropbox/music/midi/chet_atkins_windy_and_warm.mid")
+        #song = "/Users/anthonyschmieder/Dropbox/music/midi/bach_air.mid"
+        #song = "/Users/anthonyschmieder/Dropbox/music/midi/nine_inch_nails-closer.mid"
+        song = "/Users/anthonyschmieder/Dropbox/music/midi/beat.mid"
         midiplayer = midiplayer.MidiPlayer(song)
         midiplayer.attach(PlayingSongState)
         threading.Thread(target=midiplayer.play).start()
