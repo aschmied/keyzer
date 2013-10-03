@@ -6,7 +6,8 @@ _ASSET_FILE_NAMES = [
     "black_key_down.png",
     "black_key_up.png",
     "white_key_down.png",
-    "white_key_up.png"
+    "white_key_up.png",
+    "staff_line.png",
 ]
 
 class Assets(object):

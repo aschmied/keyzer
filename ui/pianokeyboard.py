@@ -7,7 +7,7 @@ class PianoKey(pyglet.sprite.Sprite):
 
     def __init__(self, image, drawingOrigin, noteIndex, batch=None, group=None):
         self._image = image
-        self.drawingOrigin = drawingOrigin
+        self._drawingOrigin = drawingOrigin
         x = drawingOrigin[0]
         y = drawingOrigin[1]
         self._noteIndex = noteIndex
@@ -39,8 +39,8 @@ class PianoKeyboard(pyglet.graphics.Batch):
 
     def __init__(self, x, y):
         super(PianoKeyboard, self).__init__()
-        self.x = x
-        self.y = y
+        self._x = x
+        self._y = y
         self._getPianoKeyAssets()
         self._whiteKeyLayer = pyglet.graphics.OrderedGroup(0)
         self._blackKeyLayer = pyglet.graphics.OrderedGroup(1) 
@@ -48,7 +48,7 @@ class PianoKeyboard(pyglet.graphics.Batch):
 
     def _initKeys(self):
         self._keys = []
-        drawingCursor = (self.x, self.y)
+        drawingCursor = (self._x, self._y)
         for noteIndex in range(0,88):
             if self._noteIndexIsSharp(noteIndex):
                 drawingCursor = self._initBlackKey(noteIndex, drawingCursor)
@@ -88,3 +88,9 @@ class PianoKeyboard(pyglet.graphics.Batch):
     def update(self, dt):
         for key in self._keys:
             key.update(dt)
+    
+    def getKeyBoundingBox(self, noteIndex):
+        key = self._keys[noteIndex]
+        origin = (key._x, key._y)
+        size = (key.width, key.height)
+        return (origin, size)
