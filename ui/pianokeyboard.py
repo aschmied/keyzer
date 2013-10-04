@@ -1,6 +1,8 @@
 import pyglet
+
 from ui.assetmanager import Assets
 from instrumentstate import InstrumentState
+import util.music
 
 
 class PianoKey(pyglet.sprite.Sprite):
@@ -50,7 +52,7 @@ class PianoKeyboard(pyglet.graphics.Batch):
         self._keys = []
         drawingCursor = (self._x, self._y)
         for noteIndex in range(0,88):
-            if self._noteIndexIsSharp(noteIndex):
+            if util.music.noteIndexIsSharp(noteIndex):
                 drawingCursor = self._initBlackKey(noteIndex, drawingCursor)
             else:
                 drawingCursor = self._initWhiteKey(noteIndex, drawingCursor)
@@ -60,10 +62,6 @@ class PianoKeyboard(pyglet.graphics.Batch):
         self.wDownImage = Assets.get("white_key_down.png")
         self.bUpImage = Assets.get("black_key_up.png")
         self.wUpImage = Assets.get("white_key_up.png")
-
-    def _noteIndexIsSharp(self, noteIndex):
-        sharpKeysInOctave = [1, 4, 6, 9, 11] # 0=A
-        return noteIndex % 12 in sharpKeysInOctave and noteIndex < 86
 
     def _initBlackKey(self, noteIndex, drawingCursor):
         drawingCursorBlackKey = (drawingCursor[0], 
