@@ -1,12 +1,11 @@
-import time
 import midi
-from util.attachables import Attachable
-import instrument
+import time
 
+from util.attachables import Attachable
 import logging
 
-_DEFAULT_BEATSPERMIN = 165
-_FRAMES_PER_SECOND = 60
+_DEFAULT_BEATSPERMIN = 165.0
+_SECONDS_PER_FRAME = 1.0/60
 
 class MidiPlayer(Attachable):
 
@@ -29,20 +28,40 @@ class MidiPlayer(Attachable):
         self._playing = True
         events = self.getSortedEvents()
         beatsPerMin = _DEFAULT_BEATSPERMIN
+        ticksPerFrame = self.secondsToTicks(beatsPerMin, _SECONDS_PER_FRAME)
+
         currentTick = 0
-        for event in events:
-            if not self._playing:
-                break
-            ticksBeforeNextEvent = event.tick - currentTick
-            currentTick = event.tick
-            secondsBeforeNextEvent = \
-                    self.ticksToSeconds(beatsPerMin, ticksBeforeNextEvent)
-            time.sleep(secondsBeforeNextEvent)
-            rawMidiEvent = _PyMidiEventToRawMidiEvent.convert(event)
-            if rawMidiEvent is not None:
-                self._midiout.handleMidiEvent(rawMidiEvent)
-            for a in self._getAttached():
-                a.onTickUpdate(currentTick)
+        eventIter = iter(events)
+        event = eventIter.next()
+        try:
+            while self._playing:
+                # dispatch overdue events
+                while event.tick <= currentTick:
+                    rawMidiEvent = _PyMidiEventToRawMidiEvent.convert(event)
+                    if rawMidiEvent is not None:
+                        self._midiout.handleMidiEvent(rawMidiEvent)
+                    event = eventIter.next()
+
+                # sleep and update GUI until next event
+                ticksBeforeNextEvent = event.tick - currentTick
+                secondsBeforeNextEvent = \
+                        self.ticksToSeconds(beatsPerMin, ticksBeforeNextEvent)
+                numWaits = int(secondsBeforeNextEvent / _SECONDS_PER_FRAME)
+                for i in range(numWaits):
+                    time.sleep(_SECONDS_PER_FRAME)
+                    currentTick += ticksPerFrame
+                    ticksBeforeNextEvent -= ticksPerFrame
+                    for a in self._getAttached():
+                        a.onTickUpdate(currentTick)
+                secondsBeforeNextEvent = \
+                        self.ticksToSeconds(beatsPerMin, ticksBeforeNextEvent)
+                time.sleep(secondsBeforeNextEvent)
+                currentTick = event.tick
+                for a in self._getAttached():
+                    a.onTickUpdate(currentTick)
+
+        except StopIteration:
+            pass
 
     def stop(self):
         self._playing = False
@@ -59,6 +78,11 @@ class MidiPlayer(Attachable):
         ticksPerMin = self._ticksPerBeat * beatsPerMin
         ticksPerSec = ticksPerMin / 60.
         return ticks / ticksPerSec
+
+    def secondsToTicks(self, beatsPerMin, seconds):
+        beatsPerSec = beatsPerMin / 60.
+        ticksPerSec = self._ticksPerBeat * beatsPerSec
+        return seconds * ticksPerSec
 
 
 class _PyMidiEventToRawMidiEvent(object):
