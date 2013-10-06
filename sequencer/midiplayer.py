@@ -10,14 +10,15 @@ _FRAMES_PER_SECOND = 60
 
 class MidiPlayer(Attachable):
 
-    def __init__(self, midioutPort, filename):
+    def __init__(self, midioutConnection, filename):
         super(MidiPlayer, self).__init__()
-        self._midioutPort = midioutPort
+        self._midiout = midioutConnection
         self._filename = filename
         self._pattern = midi.read_midifile(filename)
         self._ticksPerBeat = self._pattern.resolution
         self._pattern.make_ticks_abs()
         self._logging = logging.getLogger("keyzer")
+        self._playing = False
 
     def attach(self, objectToAttach):
         """objectToAttach should implement one of the tick update or song 
@@ -25,12 +26,13 @@ class MidiPlayer(Attachable):
         super(MidiPlayer, self).attach(objectToAttach)
 
     def play(self):
-        self._initializeMidiOutput()
-        
+        self._playing = True
         events = self.getSortedEvents()
         beatsPerMin = _DEFAULT_BEATSPERMIN
         currentTick = 0
         for event in events:
+            if not self._playing:
+                break
             ticksBeforeNextEvent = event.tick - currentTick
             currentTick = event.tick
             secondsBeforeNextEvent = \
@@ -42,7 +44,8 @@ class MidiPlayer(Attachable):
             for a in self._getAttached():
                 a.onTickUpdate(currentTick)
 
-        self._finalizeMidiOutput()
+    def stop(self):
+        self._playing = False
         
     def getSortedEvents(self):
         events = []
@@ -56,13 +59,6 @@ class MidiPlayer(Attachable):
         ticksPerMin = self._ticksPerBeat * beatsPerMin
         ticksPerSec = ticksPerMin / 60.
         return ticks / ticksPerSec
-
-    def _initializeMidiOutput(self):
-        self._midiout = instrument.midi.OutputConnection()
-        self._midiout.openPort(self._midioutPort)
-
-    def _finalizeMidiOutput(self):
-        self._midiout.closePort()
 
 
 class _PyMidiEventToRawMidiEvent(object):

@@ -60,15 +60,20 @@ def main(argv):
 
     midiout = midi.OutputConnection()
     outPorts = midiout.probeMidiPorts()
-    midiplayer = MidiPlayer(outPorts[args.out_port], args.song_path)
+    midiout.openPort(outPorts[args.out_port])
+    midiplayer = MidiPlayer(midiout, args.song_path)
     midiplayer.attach(PlayingSongState)
 
     Assets.loadAssets()
     app = ApplicationWindow()
-    threading.Thread(target=midiplayer.play).start()
+    playerThread = threading.Thread(target=midiplayer.play)
+    playerThread.start()
 
     app.start()
+    midiplayer.stop()
+    playerThread.join()
     midiin.closePort()
+    midiout.closePort()
     
 if __name__ == '__main__':
     main(sys.argv)
