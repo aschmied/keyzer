@@ -1,51 +1,72 @@
+from __future__ import print_function
+
+import argparse
 import sys
 import time
 import threading
 
 from ui.assetmanager import Assets
 from ui.applicationwindow import ApplicationWindow
+from instrumentstate import InstrumentState
 from instrument.keyboard import KeyPressToMusicEventMapper
 from instrument import midi
-from instrumentstate import InstrumentState
 from sequencer.midiplayer import MidiPlayer
 from playingsongstate import PlayingSongState
 
-def usage():
-    print("Usage: keyzer runType songPath trackNumber")
 
-def parseArgs(argv):
-    if len(argv) != 4:
-        print(argv)
-        usage()
-        sys.exit(1)
-    runType = argv[1]
-    songPath = argv[2]
-    trackToLearn = argv[3]
-    return (runType, songPath, trackToLearn)
+def parseArgs():
+    parser = argparse.ArgumentParser(description='Piano sight reading trainer')
+    parser.add_argument('--in-port', type=int, default=0,
+                        help='Input MIDI port number')
+    # output will need to support "none"
+    #parser.add_argument('--out-port', type=int, default=0,
+                        #help='Output MIDI port port number')
+    parser.add_argument('-l', '--list', action='store_true',
+                        help='List available MIDI ports and terminate')
+    parser.add_argument('--song-path', type=str,
+                        help='Input MIDI file')
+    parser.add_argument('--track', type=int,
+                        help='MIDI track number to learn')
+    args = parser.parse_args()
+
+    if not args.list and not args.song_path:
+        parser.error("You must specify one of --song-path or --list")
+
+    return args
+
+def probeMidiAndPrint():
+        midiin = midi.InputConnection()
+        inPorts = midiin.probeMidiPorts()
+        midiout = midi.OutputConnection()
+        outPorts = midiout.probeMidiPorts()
+        printPort = lambda p: print("\t{}: {}".format(p.getNumber(), p.getName()))
+        print("Input ports")
+        map(printPort, inPorts)
+        print("Output ports")
+        map(printPort, outPorts)
 
 def main(argv):
 
-    (runType, songPath, trackToLearn) = parseArgs(argv)
+    args = parseArgs()
 
-    midiin = None
+    if args.list:
+        probeMidiAndPrint()
+        sys.exit(0)
+
+    midiin = midi.InputConnection()
+    inPorts = midiin.probeMidiPorts()
+    midiin.attach(InstrumentState)
+    midiin.openPort(inPorts[args.in_port])
+
+    midiplayer = MidiPlayer(args.song_path)
+    midiplayer.attach(PlayingSongState)
+
     Assets.loadAssets()
     app = ApplicationWindow()
-    if runType == "k":
-        keyPressToMusicEventMapper = KeyPressToMusicEventMapper()
-        app.attachToKeyboard(keyPressToMusicEventMapper)
-        keyPressToMusicEventMapper.attach(InstrumentState)
-    else:
-        midiin = midi.InputConnection()
-        midiin.attach(InstrumentState)
-        midiin.openPort(midiin.probeMidiPorts()[0])
-
-        midiplayer = MidiPlayer(songPath)
-        midiplayer.attach(PlayingSongState)
-        threading.Thread(target=midiplayer.play).start()
+    threading.Thread(target=midiplayer.play).start()
 
     app.start()
-    if midiin is not None:
-        midiin.closePort()
+    midiin.closePort()
     
 if __name__ == '__main__':
     main(sys.argv)
