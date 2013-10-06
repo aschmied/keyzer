@@ -18,9 +18,9 @@ def parseArgs():
     parser = argparse.ArgumentParser(description='Piano sight reading trainer')
     parser.add_argument('--in-port', type=int, default=0,
                         help='Input MIDI port number')
-    # output will need to support "none"
-    #parser.add_argument('--out-port', type=int, default=0,
-                        #help='Output MIDI port port number')
+    # output needs to support "none"
+    parser.add_argument('--out-port', type=int, default=0,
+                        help='Output MIDI port port number')
     parser.add_argument('-l', '--list', action='store_true',
                         help='List available MIDI ports and terminate')
     parser.add_argument('--song-path', type=str,
@@ -58,7 +58,9 @@ def main(argv):
     midiin.attach(InstrumentState)
     midiin.openPort(inPorts[args.in_port])
 
-    midiplayer = MidiPlayer(args.song_path)
+    midiout = midi.OutputConnection()
+    outPorts = midiout.probeMidiPorts()
+    midiplayer = MidiPlayer(outPorts[args.out_port], args.song_path)
     midiplayer.attach(PlayingSongState)
 
     Assets.loadAssets()

@@ -10,8 +10,9 @@ _FRAMES_PER_SECOND = 60
 
 class MidiPlayer(Attachable):
 
-    def __init__(self, filename):
+    def __init__(self, midioutPort, filename):
         super(MidiPlayer, self).__init__()
+        self._midioutPort = midioutPort
         self._filename = filename
         self._pattern = midi.read_midifile(filename)
         self._ticksPerBeat = self._pattern.resolution
@@ -19,7 +20,8 @@ class MidiPlayer(Attachable):
         self._logging = logging.getLogger("keyzer")
 
     def attach(self, objectToAttach):
-        """objectToAttach must implement the tick update callback interface"""
+        """objectToAttach should implement one of the tick update or song 
+           loaded callback interface"""
         super(MidiPlayer, self).attach(objectToAttach)
 
     def play(self):
@@ -39,9 +41,9 @@ class MidiPlayer(Attachable):
                 self._midiout.handleMidiEvent(rawMidiEvent)
             for a in self._getAttached():
                 a.onTickUpdate(currentTick)
-        
-        self._finalizeMidiOutput()
 
+        self._finalizeMidiOutput()
+        
     def getSortedEvents(self):
         events = []
         for track in self._pattern:
@@ -57,10 +59,11 @@ class MidiPlayer(Attachable):
 
     def _initializeMidiOutput(self):
         self._midiout = instrument.midi.OutputConnection()
-        self._midiout.openPort(self._midiout.probeMidiPorts()[0])
+        self._midiout.openPort(self._midioutPort)
 
     def _finalizeMidiOutput(self):
         self._midiout.closePort()
+
 
 class _PyMidiEventToRawMidiEvent(object):
 
