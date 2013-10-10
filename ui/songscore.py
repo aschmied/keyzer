@@ -1,6 +1,7 @@
 import pyglet
 
 from ui.assetmanager import Assets
+from playingsongstate import PlayingSongState
 import util.music
 
 
@@ -45,5 +46,5 @@ class SongScore(pyglet.graphics.Batch):
             self._staffLines.append(StaffLine(self._staffLineImage, (x, y), self))
         
     def update(self, dt):
-        pass
+        print "Tick: {}".format(PlayingSongState.getCurrentTick())
 
