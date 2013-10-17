@@ -2,15 +2,18 @@ import Queue
 
 class PlayingSongState():
 
-    _song = None
+    _notes = None
     _currentTick = 0
     _attached = []
     _tickUpdateQueue = Queue.Queue()
 
     @staticmethod
-    def setSong(song):
-        PlayingSongState._song = song
+    def setNotes(notes):
+        PlayingSongState._notes = notes
         PlayingSongState._currentTick = 0
+        print "notes set"
+        for note in notes:
+            print (note.onTick, note.offTick, note.velocity, note.channel)
 
     @staticmethod
     def getCurrentTick():

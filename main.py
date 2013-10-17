@@ -63,6 +63,8 @@ def main(argv):
     midiout.openPort(outPorts[args.out_port])
     midiplayer = MidiPlayer(midiout, args.song_path)
     midiplayer.attach(PlayingSongState)
+    noteSequenceForGui = midiplayer.getNoteSequence().getTrack(args.track)
+    PlayingSongState.setNotes(noteSequenceForGui)
 
     Assets.loadAssets()
     app = ApplicationWindow()

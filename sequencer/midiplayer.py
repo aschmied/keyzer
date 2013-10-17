@@ -7,6 +7,56 @@ import logging
 _DEFAULT_BEATSPERMIN = 165.0
 _SECONDS_PER_FRAME = 1.0/60
 
+class Note(object):
+
+    def __init__(self, channel, onTick, offTick, velocity):
+        self.channel = channel
+        self.onTick = onTick
+        self.offTick = offTick
+        self.velocity = velocity
+
+    def __lt__(self, other):
+        return self.onTick < other.onTick
+
+
+class NoteSequence(object):
+    """
+    A representation of a sequence of notes for consumption by other components
+    in the application.
+    """
+
+    def __init__(self, pyMidiPattern):
+        self._tracks = []
+        for track in pyMidiPattern:
+            noteOnEvents = {}
+            notesForTrack = []
+            for event in track:
+                if isinstance(event, midi.events.NoteOnEvent):
+                    channel = event.channel
+                    pitch = event.get_pitch()
+                    key = str(channel) + "-" + str(pitch)
+                    if not key in noteOnEvents:
+                        velocity = event.get_velocity()
+                        tick = event.tick
+                        noteOnEvents[key] = Note(channel, tick, -1, velocity)
+                elif isinstance(event, midi.events.NoteOffEvent):
+                    channel = event.channel
+                    pitch = event.get_pitch()
+                    key = str(channel) + "-" + str(pitch)
+                    if key in noteOnEvents:
+                        note = noteOnEvents[key]
+                        note.offTick = event.tick
+                        notesForTrack.append(note)
+                        del noteOnEvents[key]
+                else:
+                    pass
+            notesForTrack.sort()
+            self._tracks.append(notesForTrack)
+
+    def getTrack(self, trackIndex):
+        return self._tracks[trackIndex]
+
+
 class MidiPlayer(Attachable):
 
     def __init__(self, midioutConnection, filename):
@@ -20,8 +70,7 @@ class MidiPlayer(Attachable):
         self._playing = False
 
     def attach(self, objectToAttach):
-        """objectToAttach should implement one of the tick update or song 
-           loaded callback interface"""
+        """objectToAttach must implement onTickUpdate(currentTick)"""
         super(MidiPlayer, self).attach(objectToAttach)
 
     def play(self):
@@ -73,6 +122,9 @@ class MidiPlayer(Attachable):
                 events.append(event)
         events.sort()
         return events
+    
+    def getNoteSequence(self):
+        return NoteSequence(self._pattern)
 
     def ticksToSeconds(self, beatsPerMin, ticks):
         ticksPerMin = self._ticksPerBeat * beatsPerMin
