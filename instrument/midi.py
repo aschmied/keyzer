@@ -32,8 +32,6 @@ class InputConnection(Attachable):
         self._availablePorts = []
         portNames = self._midiInput.get_ports(
             encoding=('latin1' if sys.platform.startswith('win') else 'utf-8'))
-        if not portNames:
-            raise Exception("No midi input ports found")
         ports = [MidiPort(number, name) for number, name in enumerate(portNames)]
         self._availablePorts.extend(ports)
         return self._availablePorts
@@ -47,6 +45,7 @@ class InputConnection(Attachable):
     
     def openPort(self, port):
         self._midiInput.open_port(port.getNumber())
+        #self._midiInput.open_virtual_port(port.getName())
         self._connectedPort = port
         self._midiInput.set_callback(self._midiEventCallback)
         
