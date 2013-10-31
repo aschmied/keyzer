@@ -7,54 +7,93 @@ import logging
 _DEFAULT_BEATSPERMIN = 165.0
 _SECONDS_PER_FRAME = 1.0/60
 
+_MAX_MIDI_CHANNELS = 15
+_DEFAULT_MIDI_PROGRAM = 0
+
 class Note(object):
 
-    def __init__(self, channel, onTick, offTick, velocity):
-        self.channel = channel
+    def __init__(self, onTick, offTick, program, pitch, velocity):
+        """Member of a Channel"""
         self.onTick = onTick
         self.offTick = offTick
+        self.program = program
+        self.pitch = pitch
         self.velocity = velocity
 
     def __lt__(self, other):
         return self.onTick < other.onTick
+    
+    def __repr__(self):
+        return "{}--{}: {} {} {}".format(
+            self.onTick, self.offTick, self.program, self.pitch, self.velocity)
 
 
-class NoteSequence(object):
+class Channel(list):
+    """A list of Notes"""
+
+    def __init__(self, pyMidiTrack, channelIndex):
+        super(Channel, self).__init__()
+        self._channelIndex = channelIndex
+
+        program = _DEFAULT_MIDI_PROGRAM
+        noteOnEvents = {}
+        for event in pyMidiTrack:
+            if not isinstance(event, midi.events.Event):
+                continue
+
+            if not event.channel == self._channelIndex:
+                continue
+
+            if isinstance(event, midi.events.ProgramChangeEvent):
+                program = event.get_value()
+
+            if isinstance(event, midi.events.NoteOnEvent):
+                pitch = event.get_pitch()
+                if not pitch in noteOnEvents:
+                    velocity = event.get_velocity()
+                    tick = event.tick
+                    noteOnEvents[pitch] = Note(tick, -1, program, pitch, velocity)
+
+            elif isinstance(event, midi.events.NoteOffEvent):
+                pitch = event.get_pitch()
+                if pitch in noteOnEvents:
+                    note = noteOnEvents[pitch]
+                    note.offTick = event.tick
+                    self.append(note)
+                    del noteOnEvents[pitch]
+            else:
+                pass
+
+        self.sort()
+
+    def getNotesForProgram(self, program):
+        return [note for note in self if note.program == program]
+
+    def getPrograms(self):
+        programs = set([note.program for note in self])
+        return sorted(programs)
+
+
+class Track(list):
+    """A list of Channels"""
+    
+    def __init__(self, trackIndex, pyMidiTrack):
+        super(Track, self).__init__()
+        self._trackIndex = trackIndex
+        for channelId in range(_MAX_MIDI_CHANNELS):
+            self.append(Channel(pyMidiTrack, channelId))
+
+
+class Sequence(list):
     """
     A representation of a sequence of notes for consumption by other components
-    in the application.
+    in the application. A Sequence is a list of Tracks.
     """
 
     def __init__(self, pyMidiPattern):
-        self._tracks = []
-        for track in pyMidiPattern:
-            noteOnEvents = {}
-            notesForTrack = []
-            for event in track:
-                if isinstance(event, midi.events.NoteOnEvent):
-                    channel = event.channel
-                    pitch = event.get_pitch()
-                    key = str(channel) + "-" + str(pitch)
-                    if not key in noteOnEvents:
-                        velocity = event.get_velocity()
-                        tick = event.tick
-                        noteOnEvents[key] = Note(channel, tick, -1, velocity)
-                elif isinstance(event, midi.events.NoteOffEvent):
-                    channel = event.channel
-                    pitch = event.get_pitch()
-                    key = str(channel) + "-" + str(pitch)
-                    if key in noteOnEvents:
-                        note = noteOnEvents[key]
-                        note.offTick = event.tick
-                        notesForTrack.append(note)
-                        del noteOnEvents[key]
-                else:
-                    pass
-            notesForTrack.sort()
-            self._tracks.append(notesForTrack)
-
-    def getTrack(self, trackIndex):
-        return self._tracks[trackIndex]
+        super(Sequence, self).__init__()
+        for (trackIndex, track) in enumerate(pyMidiPattern):
+            self.append(Track(trackIndex, track))
 
 
 class MidiPlayer(Attachable):
@@ -124,7 +163,7 @@ class MidiPlayer(Attachable):
         return events
     
     def getNoteSequence(self):
-        return NoteSequence(self._pattern)
+        return Sequence(self._pattern)
 
     def ticksToSeconds(self, beatsPerMin, ticks):
         ticksPerMin = self._ticksPerBeat * beatsPerMin

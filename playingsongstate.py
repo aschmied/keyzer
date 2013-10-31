@@ -13,7 +13,7 @@ class PlayingSongState():
         PlayingSongState._currentTick = 0
         print "notes set"
         for note in notes:
-            print (note.onTick, note.offTick, note.velocity, note.channel)
+            print note
 
     @staticmethod
     def getCurrentTick():

@@ -2,13 +2,11 @@ from __future__ import print_function
 
 import argparse
 import sys
-import time
 import threading
 
 from ui.assetmanager import Assets
 from ui.applicationwindow import ApplicationWindow
 from instrumentstate import InstrumentState
-from instrument.keyboard import KeyPressToMusicEventMapper
 from instrument import midi
 from sequencer.midiplayer import MidiPlayer
 from playingsongstate import PlayingSongState
@@ -21,36 +19,65 @@ def parseArgs():
     # output needs to support "none"
     parser.add_argument('--out-port', type=int, default=0,
                         help='Output MIDI port port number')
-    parser.add_argument('-l', '--list', action='store_true',
+    parser.add_argument('-l', '--list-ports', action='store_true',
                         help='List available MIDI ports and terminate')
     parser.add_argument('--song-path', type=str,
                         help='Input MIDI file')
-    parser.add_argument('--track', type=int,
-                        help='MIDI track number to learn')
+    parser.add_argument('--list-tracks', action='store_true',
+                        help='List tracks, channels, and programs in SONG_PATH')
+    parser.add_argument('--track', type=int, default=-1,
+                        help='Track number in SONG_PATH')
+    parser.add_argument('--channel', type=int, default=-1,
+                        help='Channel number in TRACK')
+    parser.add_argument('--program', type=int, default=-1,
+                        help='Program number in TRACK/CHANNEL')
     args = parser.parse_args()
 
-    if not args.list and not args.song_path:
-        parser.error("You must specify one of --song-path or --list")
+    if not args.list_ports and not args.song_path:
+        parser.error("You must specify one of --song-path or --list-ports")
+
+    if args.list_tracks and not args.song_path:
+        parser.error("You must specify a song path to list the tracks")
+
+    if not args.list_ports and not args.list_tracks and not (
+            args.track >= 0 and args.channel >= 0 and args.program >= 0):
+        parser.error("You must specify a track, channel, and program to learn a song. Use --list-tracks to list them.")
 
     return args
 
 def probeMidiAndPrint():
-        midiin = midi.InputConnection()
-        inPorts = midiin.probeMidiPorts()
-        midiout = midi.OutputConnection()
-        outPorts = midiout.probeMidiPorts()
-        printPort = lambda p: print("\t{}: {}".format(p.getNumber(), p.getName()))
-        print("Input ports")
-        map(printPort, inPorts)
-        print("Output ports")
-        map(printPort, outPorts)
+    midiin = midi.InputConnection()
+    inPorts = midiin.probeMidiPorts()
+    midiout = midi.OutputConnection()
+    outPorts = midiout.probeMidiPorts()
+    printPort = lambda p: print("\t{}: {}".format(p.getNumber(), p.getName()))
+    print("Input ports")
+    map(printPort, inPorts)
+    print("Output ports")
+    map(printPort, outPorts)
+
+def extractTracksAndPrint(songPath):
+    midiplayer = MidiPlayer(None, songPath)
+    noteSequence = midiplayer.getNoteSequence()
+    for track in noteSequence:
+        for channel in track:
+            tix = track._trackIndex
+            cix = channel._channelIndex
+            pgms = channel.getPrograms()
+            if len(pgms) > 0:
+                print("t{}c{}: {}".format(tix, cix, pgms))
+
 
 def main(argv):
 
     args = parseArgs()
 
-    if args.list:
+    if args.list_ports:
         probeMidiAndPrint()
+        sys.exit(0)
+
+    if args.list_tracks:
+        extractTracksAndPrint(args.song_path)
         sys.exit(0)
 
     midiin = midi.InputConnection()
@@ -63,7 +90,8 @@ def main(argv):
     midiout.openPort(outPorts[args.out_port])
     midiplayer = MidiPlayer(midiout, args.song_path)
     midiplayer.attach(PlayingSongState)
-    noteSequenceForGui = midiplayer.getNoteSequence().getTrack(args.track)
+    noteSequence = midiplayer.getNoteSequence()
+    noteSequenceForGui = noteSequence[args.track][args.channel].getNotesForProgram(args.program)
     PlayingSongState.setNotes(noteSequenceForGui)
 
     Assets.loadAssets()
