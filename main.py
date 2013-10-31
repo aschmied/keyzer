@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import argparse
+import logging
 import sys
 import threading
 
@@ -69,6 +70,8 @@ def extractTracksAndPrint(songPath):
 
 
 def main(argv):
+
+    logging.basicConfig(level=logging.WARNING)
 
     args = parseArgs()
 

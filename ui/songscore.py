@@ -1,3 +1,4 @@
+import logging
 import pyglet
 
 from ui.assetmanager import Assets
@@ -21,6 +22,7 @@ class SongScore(pyglet.graphics.Batch):
 
     def __init__(self, x, y, lowAkeyCentreY, whiteKeyHeight):
         super(SongScore, self).__init__()
+        self._log = logging.getLogger("keyzer:SongScore")
         self._x = x
         self._y = y
         self._computeNoteheadOrigins(lowAkeyCentreY, whiteKeyHeight)
@@ -46,5 +48,5 @@ class SongScore(pyglet.graphics.Batch):
             self._staffLines.append(StaffLine(self._staffLineImage, (x, y), self))
         
     def update(self, dt):
-        print "Tick: {}".format(PlayingSongState.getCurrentTick())
+        self._log.debug("Tick {}".format(PlayingSongState.getCurrentTick()))
 

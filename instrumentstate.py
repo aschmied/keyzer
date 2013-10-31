@@ -1,5 +1,8 @@
+import logging
+
 class InstrumentState(object):
     
+    _log = logging.getLogger("keyzer:InstrumentState")
     _notes = 88 * [0]
     
     @staticmethod
@@ -17,10 +20,5 @@ class InstrumentState(object):
     @staticmethod
     def onInstrumentEvent(note, velocity):
         InstrumentState._notes[note] = velocity
-        print(note, velocity)
-        
-        
-if __name__ == "__main__":
-    print(InstrumentState._notes)
-    InstrumentState.midiMessage(0, 50)
-    print(InstrumentState._notes)
+        InstrumentState._log.debug("{}, {}".format(note, velocity))
+

@@ -180,8 +180,7 @@ class _PyMidiEventToRawMidiEvent(object):
 
     @staticmethod
     def convert(pyMidiEvent):
-        log = logging.getLogger("keyzer")
-        logging.basicConfig(level=logging.DEBUG)
+        log = logging.getLogger("keyzer:_PyMidiEventToRawMidiEvent")
         
         if isinstance(pyMidiEvent, midi.events.NoteEvent):
             event = [pyMidiEvent.statusmsg + pyMidiEvent.channel,
