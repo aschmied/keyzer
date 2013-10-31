@@ -11,8 +11,14 @@ class PlayingSongState():
 
     @staticmethod
     def setNotes(notes):
+        """notes is a list of midiplayer.Notes sorted by offTick within onTick"""
         PlayingSongState._notes = notes
         PlayingSongState._currentTick = 0
+
+    @staticmethod
+    def getNotes():
+        """returns a list of midiplayer.Notes sorted by offTick within onTick"""
+        return PlayingSongState._notes
 
     @staticmethod
     def getCurrentTick():

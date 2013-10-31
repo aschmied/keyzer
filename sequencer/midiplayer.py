@@ -10,10 +10,11 @@ _SECONDS_PER_FRAME = 1.0/60
 _MAX_MIDI_CHANNELS = 15
 _DEFAULT_MIDI_PROGRAM = 0
 
+
 class Note(object):
 
     def __init__(self, onTick, offTick, program, pitch, velocity):
-        """Member of a Channel"""
+        """Member of a Channel. Notes are sorted by offTick within onTick."""
         self.onTick = onTick
         self.offTick = offTick
         self.program = program
@@ -21,7 +22,12 @@ class Note(object):
         self.velocity = velocity
 
     def __lt__(self, other):
-        return self.onTick < other.onTick
+        if self.onTick < other.onTick:
+            return True
+        elif self.onTick > other.onTick:
+            return False
+        else:
+            return self.offTick < other.offTick
     
     def __repr__(self):
         return "{}--{}: {} {} {}".format(
@@ -29,7 +35,7 @@ class Note(object):
 
 
 class Channel(list):
-    """A list of Notes"""
+    """A sorted list of Notes"""
 
     def __init__(self, pyMidiTrack, channelIndex):
         super(Channel, self).__init__()
@@ -75,7 +81,7 @@ class Channel(list):
 
 
 class Track(list):
-    """A list of Channels"""
+    """A list of Channels indexed by channelId"""
     
     def __init__(self, trackIndex, pyMidiTrack):
         super(Track, self).__init__()
