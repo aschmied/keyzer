@@ -63,10 +63,13 @@ def extractTracksAndPrint(songPath):
     for track in noteSequence:
         for channel in track:
             tix = track._trackIndex
-            cix = channel._channelIndex
+            cix = channel._channelId
             pgms = channel.getPrograms()
             if len(pgms) > 0:
-                print("t{}c{}: {}".format(tix, cix, pgms))
+                print("t{}c{}".format(tix, cix))
+                for pgm in pgms:
+                    notes = sum([1 for note in channel if note.program==pgm])
+                    print("  p{}: {} notes".format(pgm, notes))
 
 
 def main(argv):
@@ -95,6 +98,7 @@ def main(argv):
     midiplayer.attach(PlayingSongState)
     noteSequence = midiplayer.getNoteSequence()
     noteSequenceForGui = noteSequence[args.track][args.channel].getNotesForProgram(args.program)
+    PlayingSongState.setTicksPerBeat(noteSequence.ticksPerBeat)
     PlayingSongState.setNotes(noteSequenceForGui)
 
     Assets.loadAssets()

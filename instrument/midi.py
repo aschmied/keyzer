@@ -70,6 +70,7 @@ class MessageDecoder(object):
     
     @staticmethod
     def _midiNoteToNoteIndex(midiNote):
+        """TODO: this is hardcoded in 2 places"""
         return midiNote - 21
     
     @staticmethod

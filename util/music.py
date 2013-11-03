@@ -3,4 +3,7 @@ def noteIndexIsSharp(noteIndex):
     sharpKeysInOctave = [1, 4, 6, 9, 11] # 0=low A
     return noteIndex % 12 in sharpKeysInOctave and noteIndex < 86
 
+def midiPitchToNoteIndex(pitch):
+    """TODO: this is also hardcoded in instrument/midi.py"""
+    return pitch - 21
 

@@ -3,8 +3,9 @@ import time
 
 from util.attachables import Attachable
 import logging
+import util.music
 
-_DEFAULT_BEATSPERMIN = 165.0
+_DEFAULT_BEATSPERMIN = 120.0
 _SECONDS_PER_FRAME = 1.0/60
 
 _MAX_MIDI_CHANNELS = 15
@@ -13,12 +14,12 @@ _DEFAULT_MIDI_PROGRAM = 0
 
 class Note(object):
 
-    def __init__(self, onTick, offTick, program, pitch, velocity):
+    def __init__(self, onTick, offTick, program, noteIndex, velocity):
         """Member of a Channel. Notes are sorted by offTick within onTick."""
         self.onTick = onTick
         self.offTick = offTick
         self.program = program
-        self.pitch = pitch
+        self.noteIndex = noteIndex
         self.velocity = velocity
 
     def __lt__(self, other):
@@ -31,23 +32,23 @@ class Note(object):
     
     def __repr__(self):
         return "{}--{}: {} {} {}".format(
-            self.onTick, self.offTick, self.program, self.pitch, self.velocity)
+            self.onTick, self.offTick, self.program, self.noteIndex, self.velocity)
 
 
 class Channel(list):
     """A sorted list of Notes"""
 
-    def __init__(self, pyMidiTrack, channelIndex):
+    def __init__(self, pyMidiTrack, channelId):
         super(Channel, self).__init__()
-        self._channelIndex = channelIndex
+        self._channelId = channelId
 
         program = _DEFAULT_MIDI_PROGRAM
-        noteOnEvents = {}
+        noteOnEvents = 88*[None]
         for event in pyMidiTrack:
             if not isinstance(event, midi.events.Event):
                 continue
 
-            if not event.channel == self._channelIndex:
+            if not event.channel == self._channelId:
                 continue
 
             if isinstance(event, midi.events.ProgramChangeEvent):
@@ -55,18 +56,20 @@ class Channel(list):
 
             if isinstance(event, midi.events.NoteOnEvent):
                 pitch = event.get_pitch()
-                if not pitch in noteOnEvents:
+                index = util.music.midiPitchToNoteIndex(pitch)
+                if noteOnEvents[index] is None:
                     velocity = event.get_velocity()
                     tick = event.tick
-                    noteOnEvents[pitch] = Note(tick, -1, program, pitch, velocity)
+                    noteOnEvents[index] = Note(tick, -1, program, index, velocity)
 
             elif isinstance(event, midi.events.NoteOffEvent):
                 pitch = event.get_pitch()
-                if pitch in noteOnEvents:
-                    note = noteOnEvents[pitch]
+                index = util.music.midiPitchToNoteIndex(pitch)
+                if not noteOnEvents[index] is None:
+                    note = noteOnEvents[index]
                     note.offTick = event.tick
                     self.append(note)
-                    del noteOnEvents[pitch]
+                    noteOnEvents[index] = None
             else:
                 pass
 
@@ -98,6 +101,7 @@ class Sequence(list):
 
     def __init__(self, pyMidiPattern):
         super(Sequence, self).__init__()
+        self.ticksPerBeat = pyMidiPattern.resolution
         for (trackIndex, track) in enumerate(pyMidiPattern):
             self.append(Track(trackIndex, track))
 
@@ -111,7 +115,7 @@ class MidiPlayer(Attachable):
         self._pattern = midi.read_midifile(filename)
         self._ticksPerBeat = self._pattern.resolution
         self._pattern.make_ticks_abs()
-        self._logging = logging.getLogger("keyzer")
+        self._log = logging.getLogger("keyzer:MidiPlayer")
         self._playing = False
 
     def attach(self, objectToAttach):
@@ -122,12 +126,13 @@ class MidiPlayer(Attachable):
         self._playing = True
         events = self.getSortedEvents()
         beatsPerMin = _DEFAULT_BEATSPERMIN
-        ticksPerFrame = self.secondsToTicks(beatsPerMin, _SECONDS_PER_FRAME)
+        secsPerFrame = _SECONDS_PER_FRAME
+        ticksPerFrame = self.secondsToTicks(beatsPerMin, secsPerFrame)
 
         currentTick = 0
         eventIter = iter(events)
-        event = eventIter.next()
         try:
+            event = eventIter.next()
             while self._playing:
                 # dispatch overdue events
                 while event.tick <= currentTick:
@@ -138,11 +143,12 @@ class MidiPlayer(Attachable):
 
                 # sleep and update GUI until next event
                 ticksBeforeNextEvent = event.tick - currentTick
-                secondsBeforeNextEvent = \
-                        self.ticksToSeconds(beatsPerMin, ticksBeforeNextEvent)
-                numWaits = int(secondsBeforeNextEvent / _SECONDS_PER_FRAME)
+                assert ticksBeforeNextEvent > 0
+                numWaits = int(ticksBeforeNextEvent / ticksPerFrame)
+
+                assert numWaits >= 0
                 for i in range(numWaits):
-                    time.sleep(_SECONDS_PER_FRAME)
+                    time.sleep(secsPerFrame)
                     currentTick += ticksPerFrame
                     ticksBeforeNextEvent -= ticksPerFrame
                     for a in self._getAttached():
@@ -172,14 +178,18 @@ class MidiPlayer(Attachable):
         return Sequence(self._pattern)
 
     def ticksToSeconds(self, beatsPerMin, ticks):
+        self._log.debug("ticksToSeconds()")
         ticksPerMin = self._ticksPerBeat * beatsPerMin
         ticksPerSec = ticksPerMin / 60.
+        self._log.debug("beatsPerMin={}, ticks={}, ticksPerMin={}, ticksPerSec={}, seconds={}".format(beatsPerMin, ticks, ticksPerMin, ticksPerSec, ticks/ticksPerSec))
+        seconds = ticks / ticksPerSec
+        assert seconds >= 0
         return ticks / ticksPerSec
 
     def secondsToTicks(self, beatsPerMin, seconds):
         beatsPerSec = beatsPerMin / 60.
         ticksPerSec = self._ticksPerBeat * beatsPerSec
-        return seconds * ticksPerSec
+        return int(seconds * ticksPerSec)
 
 
 class _PyMidiEventToRawMidiEvent(object):

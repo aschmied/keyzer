@@ -3,11 +3,20 @@ import Queue
 
 class PlayingSongState():
 
+    _ticksPerBeat = 0
     _notes = None
     _currentTick = 0
     _attached = []
     _tickUpdateQueue = Queue.Queue()
     _log = logging.getLogger("keyzer:PlayingSongState")
+
+    @staticmethod
+    def setTicksPerBeat(ticksPerBeat):
+        PlayingSongState._ticksPerBeat = ticksPerBeat
+
+    @staticmethod
+    def getTicksPerBeat():
+        return PlayingSongState._ticksPerBeat
 
     @staticmethod
     def setNotes(notes):
