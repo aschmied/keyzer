@@ -113,6 +113,7 @@ class MidiPlayer(Attachable):
         self._midiout = midioutConnection
         self._filename = filename
         self._pattern = midi.read_midifile(filename)
+        self._beatsPerMin = _DEFAULT_BEATSPERMIN
         self._ticksPerBeat = self._pattern.resolution
         self._pattern.make_ticks_abs()
         self._log = logging.getLogger("keyzer:MidiPlayer")
@@ -122,12 +123,17 @@ class MidiPlayer(Attachable):
         """objectToAttach must implement onTickUpdate(currentTick)"""
         super(MidiPlayer, self).attach(objectToAttach)
 
+    def onTempoChange(self, beatsPerMinute):
+        self._log.debug("onTempoChange({})".format(beatsPerMinute))
+        self.beatsPerMin = beatsPerMinute
+
     def play(self):
         self._playing = True
+        pyMidiEventToRawMidiEvent = _PyMidiEventToRawMidiEvent()
+        pyMidiEventToRawMidiEvent.setTempChangeListener(self)
         events = self.getSortedEvents()
-        beatsPerMin = _DEFAULT_BEATSPERMIN
         secsPerFrame = _SECONDS_PER_FRAME
-        ticksPerFrame = self.secondsToTicks(beatsPerMin, secsPerFrame)
+        ticksPerFrame = self.secondsToTicks(self._beatsPerMin, secsPerFrame)
 
         currentTick = 0
         eventIter = iter(events)
@@ -136,7 +142,7 @@ class MidiPlayer(Attachable):
             while self._playing:
                 # dispatch overdue events
                 while event.tick <= currentTick:
-                    rawMidiEvent = _PyMidiEventToRawMidiEvent.convert(event)
+                    rawMidiEvent = pyMidiEventToRawMidiEvent.convert(event)
                     if rawMidiEvent is not None:
                         self._midiout.handleMidiEvent(rawMidiEvent)
                     event = eventIter.next()
@@ -154,7 +160,7 @@ class MidiPlayer(Attachable):
                     for a in self._getAttached():
                         a.onTickUpdate(currentTick)
                 secondsBeforeNextEvent = \
-                        self.ticksToSeconds(beatsPerMin, ticksBeforeNextEvent)
+                        self.ticksToSeconds(self._beatsPerMin, ticksBeforeNextEvent)
                 time.sleep(secondsBeforeNextEvent)
                 currentTick = event.tick
                 for a in self._getAttached():
@@ -194,8 +200,14 @@ class MidiPlayer(Attachable):
 
 class _PyMidiEventToRawMidiEvent(object):
 
-    @staticmethod
-    def convert(pyMidiEvent):
+    def __init__(self):
+        self.tempoChangeListener = None
+    
+    def setTempChangeListener(self, listener):
+        """listener must implement onTempoChange(beatsPerMinute)"""
+        self.tempoChangeListener = listener
+
+    def convert(self, pyMidiEvent):
         log = logging.getLogger("keyzer:_PyMidiEventToRawMidiEvent")
         
         if isinstance(pyMidiEvent, midi.events.NoteEvent):
@@ -221,14 +233,9 @@ class _PyMidiEventToRawMidiEvent(object):
                      pyMidiEvent.data[1]]
             log.debug("PitchWheel: {0}".format(["{0:x}".format(x) for x in event]))
             return event
-        #elif isinstance(pyMidiEvent, midi.events.SetTempoEvent):
-            #microsecondsPerSecond = 10**6
-            #secondsPerMinute = 60
-            #beatsPerMinute = pyMidiEvent.event.bpm
-            #microsecondsPerBeat = ((secondsPerMinute * microsecondsPerSecond) / 
-                                   #beatsPerMinute)
-
-            #return [pyMidiEvent.statusmsg,
-                    #int(microsecondsPerBeat)]
-            log.debug("Unknown: {0}".format(["{0:x}".format(x) for x in event]))
+        elif isinstance(pyMidiEvent, midi.events.SetTempoEvent):
+            if self.tempoChangeListener:
+                self.tempoChangeListener.onTempoChange(pyMidiEvent.bpm)
+            return None
+        #log.warning("Unknown: {0}".format(["{0:x}".format(x) for x in pyMidiEvent]))
         return None
