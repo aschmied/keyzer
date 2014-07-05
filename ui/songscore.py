@@ -27,7 +27,9 @@ class ScoreNote(object):
         self._y = 0
         self._width = 0
         self._height = 10
-        self.visible = False
+        # TODO: This line was removed in my local repo, but the change uncommitted.
+        # Don't remember why. Look into it when the project is resurrected
+        # self.visible = False
 
     def isVisible(self, score):
         self._log.debug("isVisible()")
@@ -57,7 +59,6 @@ class ScoreNote(object):
         self.updateState(score)
         if self.isVisible(score):
             self._draw(score)
-
 
 class SongScore(pyglet.graphics.Batch):
 
