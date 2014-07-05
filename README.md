@@ -24,6 +24,8 @@ Keyzer is a sight reading trainer for piano.
 * Sprite and animation toolkit
 * Tested on 1.2alpha1
 
+### The USB Driver for Your Keyboard
+
 # Helpful Tools
 
 ### Midi Keys
