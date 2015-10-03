@@ -1,2 +1,1 @@
-export PYTHONPATH="$HOME/src/pyglet-1.2alpha1"
 python2.7 main.py $*
