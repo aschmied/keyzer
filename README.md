@@ -19,13 +19,16 @@ Keyzer is a sight reading trainer for piano.
 
 * Toolkit for loading and iterating over MIDI sequences
 * https://github.com/vishnubob/python-midi/
-* Install with `pip install midi`
+* Python 2 only. `2to3` works
+* Install with `pip install midi` (you might need `--pre` to allow installation of pre-release software)
+
 
 ### Pyglet
 
 * Sprite and animation toolkit
 * Tested on 1.2alpha1
 * Install with `pip install pyglet`
+* pyglet does not run in 64-bit mode, so you have to install a universal python binary and edit `keyzer` to run like `arch -32 python main.py $*`
 
 ### The USB Driver for Your Keyboard
 
