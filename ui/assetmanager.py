@@ -1,5 +1,6 @@
 """Loads and manages art assets"""
 import pyglet
+import os
 
 _ASSET_PATHS = ["res"]
 _ASSET_FILE_NAMES = [
@@ -28,7 +29,7 @@ class Assets(object):
     @staticmethod
     def _updateResourcePath():
         for p in _ASSET_PATHS:
-            pyglet.resource.path.append(p)
+            pyglet.resource.path.append(os.path.join(os.getcwd(), p))
         pyglet.resource.reindex()
 
     @staticmethod
