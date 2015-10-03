@@ -1,3 +1,14 @@
--debug the segfault in the inputs pyglet example
+BUGS
+-add some a "kill all sound" midi event when you stop in the middle of a song
+
+MAJOR FEATURES
+-audio/visual track selection
+-playback speed adjustment
+-scoring
+-sharps and flats
+
+MINOR FEATURES
 -add debugging messages using logging package after rtmidi/examples/midifilter.py
 
+LOW PRIORITY
+-debug the segfault in the inputs pyglet example
