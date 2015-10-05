@@ -27,9 +27,6 @@ class ScoreNote(object):
         self._y = 0
         self._width = 0
         self._height = 10
-        # TODO: This line was removed in my local repo, but the change uncommitted.
-        # Don't remember why. Look into it when the project is resurrected
-        # self.visible = False
 
     def isVisible(self, score):
         self._log.debug("isVisible()")
