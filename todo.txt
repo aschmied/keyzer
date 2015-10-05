@@ -1,14 +1,16 @@
 BUGS
--add some a "kill all sound" midi event when you stop in the middle of a song
+-kill all sound when you stop in the middle of a song
 
 MAJOR FEATURES
 -audio/visual track selection
 -playback speed adjustment
 -scoring
 -sharps and flats
+-compute BPM
 
 MINOR FEATURES
 -add debugging messages using logging package after rtmidi/examples/midifilter.py
+-investigate drawing the entire score as GL_RECTs and moving the viewport to scroll the notes
 
 LOW PRIORITY
 -debug the segfault in the inputs pyglet example
