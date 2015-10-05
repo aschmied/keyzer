@@ -15,6 +15,7 @@ class ApplicationWindow(Attachable):
         
         self._window = pyglet.window.Window(BOARD_SIZE[0], BOARD_SIZE[1],
                                             caption=WINDOW_CAPTION)
+        self._fps_display = pyglet.clock.ClockDisplay()
         pyglet.gl.glScalef(0.75, 0.75, 0.75)
 
         @self._window.event
@@ -22,6 +23,7 @@ class ApplicationWindow(Attachable):
             self._window.clear()
             self._pianoKeyboard.draw()
             self._songScore.draw()
+            self._fps_display.draw()
         
         @self._window.event
         def on_key_press(symbol, modifiers):
