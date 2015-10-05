@@ -73,6 +73,7 @@ class SongScore(pyglet.graphics.Batch):
         self._beatsOnScreen = 12
         self._sharpKey = True
         self._computeNoteheadOrigins(lowAkeyCentreY)
+        self._vertexLists = []
 
         self._initializeScoreNotes()
         self._getScoreAssets()
@@ -126,12 +127,18 @@ class SongScore(pyglet.graphics.Batch):
         self._log.debug("_drawRect({}, {}, {}, {})".format(
                 pixLeft, pixRight, pixTop, pixBot))
 
-        self.add(4, pyglet.gl.GL_QUADS, None,
+        vertexList = self.add(4, pyglet.gl.GL_QUADS, None,
                 ('v2i', [pixLeft, pixTop,
                          pixRight, pixTop,
                          pixRight, pixBot,
                          pixLeft, pixBot]),
                 ('c4B', 4*colour))
+        self._vertexLists.append(vertexList)
+
+    def clear(self):
+        for vertexList in self._vertexLists:
+            vertexList.delete()
+        self._vertexLists = []
 
     def _updateState(self):
         self._log.debug("_updateState()")
@@ -142,12 +149,15 @@ class SongScore(pyglet.graphics.Batch):
 
     def _updateScreen(self):
         self._log.debug("_updateScreen()")
+
         #for staffLine in self._staffLines:
             #staffLine.update(dt)
-        self.drawRect(self._x, self._x + 2000, self._y, self._y + 1000, (0, 0, 0, 255))
+
+        self.clear()
+
         for note in self._notes:
             note.update(self)
-        
+
     def update(self, dt):
         self._updateState()
         self._updateScreen()
