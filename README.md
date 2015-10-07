@@ -3,6 +3,11 @@
 Keyzer is a sight reading trainer for piano.
 
 
+# Project Status
+
+This is currently a prototype. Only basic functionality has been implemented and the code has only been tested on my 2010 MacBook Pro running Mavericks. See TODO.txt for a list of features that I would like to implement.
+
+
 # Dependencies
 
 ### Python
@@ -26,23 +31,23 @@ Keyzer is a sight reading trainer for piano.
 ### Pyglet
 
 * Sprite and animation toolkit
-* Tested on 1.2alpha1
+* Tested on 1.2.4
 * Install with `pip install pyglet`
 * pyglet does not run in 64-bit mode, so you have to install a universal python binary and edit `keyzer` to run like `arch -32 python main.py $*`
 
-### The USB Driver for Your Keyboard
+### The USB Driver for Your MIDI Keyboard
 
 # Helpful Tools
 
-### Midi Keys
+### Midi Keys (Mac OSX)
 
-* Generate MIDI events using your PC's keyboard
+* Generate MIDI events using your computer's keyboard
 * http://www.manyetas.com/creed/midikeys.html
 
 
 # Usage
 
-### Same MIDI device for input and output (e.g. a keyboard with builtin speakers)
+### Same MIDI device for input and output (e.g. a MIDI keyboard with builtin speakers)
 
 * Connect the MIDI device to your computer via USB
 * Probe the MIDI ports: `./keyzer --list-ports`

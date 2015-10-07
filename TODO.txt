@@ -1,15 +1,10 @@
-BUGS
-
 MAJOR FEATURES
 -audio/visual track selection
 -playback speed adjustment
 -scoring
 -sharps and flats
--compute BPM
 
 MINOR FEATURES
--add debugging messages using logging package after rtmidi/examples/midifilter.py
--investigate drawing the entire score as GL_RECTs and moving the viewport to scroll the notes
 
 LOW PRIORITY
--debug the segfault in the inputs pyglet example
+-investigate drawing the entire score as GL_RECTs and moving the viewport to scroll the notes
