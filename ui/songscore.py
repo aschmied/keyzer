@@ -158,4 +158,3 @@ class SongScore(pyglet.graphics.Batch):
     def update(self, dt):
         self._updateState()
         self._updateScreen()
-

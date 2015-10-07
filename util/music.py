@@ -6,4 +6,3 @@ def noteIndexIsSharp(noteIndex):
 def midiPitchToNoteIndex(pitch):
     """TODO: this is also hardcoded in instrument/midi.py"""
     return pitch - 21
-

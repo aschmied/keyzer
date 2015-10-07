@@ -45,7 +45,6 @@ class InputConnection(Attachable):
     
     def openPort(self, port):
         self._midiInput.open_port(port.getNumber())
-        #self._midiInput.open_virtual_port(port.getName())
         self._connectedPort = port
         self._midiInput.set_callback(self._midiEventCallback)
         

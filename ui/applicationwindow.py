@@ -58,11 +58,3 @@ class ApplicationWindow(Attachable):
     def attachToKeyboard(self, objectToAttach):
         '''objectToAttach must implement the keyboard event interface'''
         super(ApplicationWindow, self).attach(objectToAttach)
-        
-    
-    
-    
-    
-
-
-
