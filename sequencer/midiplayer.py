@@ -170,6 +170,9 @@ class MidiPlayer(Attachable):
             pass
 
     def stop(self):
+        for channel in xrange(_MAX_MIDI_CHANNELS):
+            allNotesOffEvent = [0xB0 + channel, 0x7B, 0]
+            self._midiout.handleMidiEvent(allNotesOffEvent)
         self._playing = False
         
     def getSortedEvents(self):
