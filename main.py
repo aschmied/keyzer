@@ -20,7 +20,7 @@ def parseArgs():
     # output needs to support "none"
     parser.add_argument('--out-port', type=int, default=0,
                         help='Output MIDI port port number')
-    parser.add_argument('-l', '--list-ports', action='store_true',
+    parser.add_argument('--list-ports', action='store_true',
                         help='List available MIDI ports and terminate')
     parser.add_argument('--song-path', type=str,
                         help='Input MIDI file')
