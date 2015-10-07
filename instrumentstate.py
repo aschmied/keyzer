@@ -1,7 +1,11 @@
 import logging
 
 class InstrumentState(object):
-    
+    """
+    The state of the MIDI instrument attached to the input
+    port.
+    """
+
     _log = logging.getLogger("keyzer:InstrumentState")
     _notes = 88 * [0]
     
@@ -21,4 +25,3 @@ class InstrumentState(object):
     def onInstrumentEvent(note, velocity):
         InstrumentState._notes[note] = velocity
         InstrumentState._log.debug("{}, {}".format(note, velocity))
-
