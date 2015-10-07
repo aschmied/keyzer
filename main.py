@@ -32,6 +32,8 @@ def parseArgs():
                         help='Channel number in TRACK')
     parser.add_argument('--program', type=int, default=-1,
                         help='Program number in TRACK/CHANNEL')
+    parser.add_argument('--debug', action='store_true',
+                        help='Print debug messages')
     args = parser.parse_args()
 
     if not args.list_ports and not args.song_path:
@@ -74,9 +76,11 @@ def extractTracksAndPrint(songPath):
 
 def main(argv):
 
-    logging.basicConfig(level=logging.WARNING)
 
     args = parseArgs()
+
+    level = logging.DEBUG if args.debug else logging.WARNING
+    logging.basicConfig(level=level)
 
     if args.list_ports:
         probeMidiAndPrint()
