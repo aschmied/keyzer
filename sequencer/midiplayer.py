@@ -236,6 +236,7 @@ class _PyMidiEventToRawMidiEvent(object):
         elif isinstance(pyMidiEvent, midi.events.SetTempoEvent):
             if self.tempoChangeListener:
                 self.tempoChangeListener.onTempoChange(pyMidiEvent.bpm)
+            log.warning("SetTempo: {0}".format(pyMidiEvent.bpm))
             return None
-        #log.warning("Unknown: {0}".format(["{0:x}".format(x) for x in pyMidiEvent]))
+        log.warning("Unknown: {0}".format(pyMidiEvent))
         return None
