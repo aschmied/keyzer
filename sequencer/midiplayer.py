@@ -125,7 +125,7 @@ class MidiPlayer(Attachable):
 
     def onTempoChange(self, beatsPerMinute):
         self._log.debug("onTempoChange({})".format(beatsPerMinute))
-        self.beatsPerMin = beatsPerMinute
+        self._beatsPerMin = beatsPerMinute
 
     def play(self):
         self._playing = True
