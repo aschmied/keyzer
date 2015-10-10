@@ -110,6 +110,7 @@ class MidiPlayer(Attachable):
 
     def __init__(self, midioutConnection, filename):
         super(MidiPlayer, self).__init__()
+        self._log = logging.getLogger("keyzer:MidiPlayer")
         self._midiout = midioutConnection
         self._filename = filename
         self._pattern = midi.read_midifile(filename)
@@ -125,15 +126,16 @@ class MidiPlayer(Attachable):
 
     def onTempoChange(self, beatsPerMinute):
         self._log.debug("onTempoChange({})".format(beatsPerMinute))
-        self._beatsPerMin = beatsPerMinute
+        self._beatsPerMin = float(beatsPerMinute)
+        self._ticksPerFrame = self.secondsToTicks(self._beatsPerMin, _SECONDS_PER_FRAME)
 
     def play(self):
+        self.onTempoChange(_DEFAULT_BEATSPERMIN)
         self._playing = True
         pyMidiEventToRawMidiEvent = _PyMidiEventToRawMidiEvent()
         pyMidiEventToRawMidiEvent.setTempChangeListener(self)
         events = self.getSortedEvents()
         secsPerFrame = _SECONDS_PER_FRAME
-        ticksPerFrame = self.secondsToTicks(self._beatsPerMin, secsPerFrame)
 
         currentTick = 0
         eventIter = iter(events)
@@ -150,13 +152,14 @@ class MidiPlayer(Attachable):
                 # sleep and update GUI until next event
                 ticksBeforeNextEvent = event.tick - currentTick
                 assert ticksBeforeNextEvent > 0
-                numWaits = int(ticksBeforeNextEvent / ticksPerFrame)
+                numWaits = int(ticksBeforeNextEvent / self._ticksPerFrame)
+                self._log.debug("next MIDI event is {0} ticks and {1} GUI frames away".format(
+                                ticksBeforeNextEvent, numWaits))
 
-                assert numWaits >= 0
                 for i in range(numWaits):
                     time.sleep(secsPerFrame)
-                    currentTick += ticksPerFrame
-                    ticksBeforeNextEvent -= ticksPerFrame
+                    currentTick += self._ticksPerFrame
+                    ticksBeforeNextEvent -= self._ticksPerFrame
                     for a in self._getAttached():
                         a.onTickUpdate(currentTick)
                 secondsBeforeNextEvent = \
