@@ -6,7 +6,7 @@ from util.attachables import Attachable
 
 #BOARD_SIZE = (1680, 1050)
 BOARD_SIZE = (int(0.75*1680), int(0.75*1050))
-WINDOW_CAPTION = "Keezer"
+WINDOW_CAPTION = "Keyzer"
 
 class ApplicationWindow(Attachable):
     
