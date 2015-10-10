@@ -100,6 +100,11 @@ def main(argv):
     midiout.openPort(outPorts[args.out_port])
     midiplayer = MidiPlayer(midiout, args.song_path)
     midiplayer.attach(PlayingSongState)
+
+    # TODO: consider moving note sequence and ticks per beat out of
+    # PlayingSongState. Pass these to components that need them and
+    # store only what is necessary in the global object (things that
+    # change).
     noteSequence = midiplayer.getNoteSequence()
     noteSequenceForGui = noteSequence[args.track][args.channel].getNotesForProgram(args.program)
     PlayingSongState.setTicksPerBeat(noteSequence.ticksPerBeat)

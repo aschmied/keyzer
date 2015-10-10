@@ -2,9 +2,14 @@ MAJOR FEATURES
 -audio/visual track selection
 -playback speed adjustment
 -scoring
+-error/success feedback
 -sharps and flats
 
 MINOR FEATURES
+-mute the track you're learning
+
+CODE IMPROVEMENTS
+-clean up the Attachable stuff
 
 LOW PRIORITY
 -investigate drawing the entire score as GL_RECTs and moving the viewport to scroll the notes
