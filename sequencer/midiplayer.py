@@ -196,7 +196,7 @@ class MidiPlayer(Attachable):
         self._log.debug("beatsPerMin={}, ticks={}, ticksPerMin={}, ticksPerSec={}, seconds={}".format(beatsPerMin, ticks, ticksPerMin, ticksPerSec, ticks/ticksPerSec))
         seconds = ticks / ticksPerSec
         assert seconds >= 0
-        return ticks / ticksPerSec
+        return seconds
 
     def secondsToTicks(self, beatsPerMin, seconds):
         beatsPerSec = beatsPerMin / 60.
@@ -208,41 +208,41 @@ class _PyMidiEventToRawMidiEvent(object):
 
     def __init__(self):
         self.tempoChangeListener = None
+        self._log = logging.getLogger("keyzer:_PyMidiEventToRawMidiEvent")
     
     def setTempChangeListener(self, listener):
         """listener must implement onTempoChange(beatsPerMinute)"""
         self.tempoChangeListener = listener
 
     def convert(self, pyMidiEvent):
-        log = logging.getLogger("keyzer:_PyMidiEventToRawMidiEvent")
-        
+        tick = pyMidiEvent.tick
         if isinstance(pyMidiEvent, midi.events.NoteEvent):
             event = [pyMidiEvent.statusmsg + pyMidiEvent.channel,
                      pyMidiEvent.get_pitch(),
                      pyMidiEvent.get_velocity()]
-            log.debug("Note: {0}".format(["{0:x}".format(x) for x in event]))
+            self._log.debug("{0}: Note: {1}".format(tick, ["{0:x}".format(x) for x in event]))
             return event
         elif isinstance(pyMidiEvent, midi.events.ControlChangeEvent):
             event =  [pyMidiEvent.statusmsg + pyMidiEvent.channel,
                       pyMidiEvent.get_control(),
                       pyMidiEvent.get_value()]
-            log.debug("ControlChange: {0}".format(["{0:x}".format(x) for x in event]))
+            self._log.debug("{0}: ControlChange: {1}".format(tick, ["{0:x}".format(x) for x in event]))
             return event
         elif isinstance(pyMidiEvent, midi.events.ProgramChangeEvent):
             event = [pyMidiEvent.statusmsg + pyMidiEvent.channel,
                      pyMidiEvent.get_value()]
-            log.debug("ProgramChange: {0}".format(["{0:x}".format(x) for x in event]))
+            self._log.debug("{0}: ProgramChange: {1}".format(tick, ["{0:x}".format(x) for x in event]))
             return event
         elif isinstance(pyMidiEvent, midi.events.PitchWheelEvent):
             event = [pyMidiEvent.statusmsg + pyMidiEvent.channel,
                      pyMidiEvent.data[0],
                      pyMidiEvent.data[1]]
-            log.debug("PitchWheel: {0}".format(["{0:x}".format(x) for x in event]))
+            self._log.debug("{0}: PitchWheel: {1}".format(tick, ["{0:x}".format(x) for x in event]))
             return event
         elif isinstance(pyMidiEvent, midi.events.SetTempoEvent):
             if self.tempoChangeListener:
                 self.tempoChangeListener.onTempoChange(pyMidiEvent.bpm)
-            log.debug("SetTempo: {0}".format(pyMidiEvent.bpm))
+            self._log.debug("{0}: SetTempo: {1}".format(tick, pyMidiEvent.bpm))
             return None
-        log.warning("Unknown: {0}".format(pyMidiEvent))
+        self._log.warning("{0}: Unknown: {1}".format(tick, pyMidiEvent))
         return None
