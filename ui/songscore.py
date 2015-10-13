@@ -139,7 +139,7 @@ class SongScore(pyglet.graphics.Batch):
     def clear(self):
         for vertexList in self._vertexLists:
             vertexList.delete()
-        self._vertexLists = []
+        del self._vertexLists[:]
 
     def _updateState(self):
         self._log.debug("_updateState()")
