@@ -6,19 +6,10 @@ import logging
 import pyglet
 
 from ui.assetmanager import Assets
+from ui.components import DrawingSurface
+from ui.components import Sprite
 from playingsongstate import PlayingSongState
 import util.music
-
-
-class StaffLine(pyglet.sprite.Sprite):
-
-    def __init__(self, image, drawingOrigin, batch=None, group=None):
-        # stafflines in a batch below noteheads
-        self._image = image
-        self._drawingOrigin = drawingOrigin
-        x = drawingOrigin[0]
-        y = drawingOrigin[1]
-        super(StaffLine, self).__init__(image, x, y, batch=batch, group=group)
 
 
 class ScoreNote(object):
@@ -61,7 +52,7 @@ class ScoreNote(object):
         if self.isVisible(score):
             self._draw(score)
 
-class SongScore(pyglet.graphics.Batch):
+class SongScore(DrawingSurface):
 
     notesWithStaffline = [22, 26, 29, 32, 36, 43, 46, 50, 53, 56]
 
@@ -74,7 +65,6 @@ class SongScore(pyglet.graphics.Batch):
         self._beatsOnScreen = 12
         self._sharpKey = True
         self._computeNoteheadOrigins(lowAkeyCentreY)
-        self._vertexLists = []
 
         self._initializeScoreNotes()
         self._getScoreAssets()
@@ -96,7 +86,7 @@ class SongScore(pyglet.graphics.Batch):
         self._staffLines = []
         for noteIndex in SongScore.notesWithStaffline:
             (x, y) = self._naturalNoteheadOrigins[noteIndex]
-            self._staffLines.append(StaffLine(self._staffLineImage, (x, y), self))
+            self._staffLines.append(Sprite(self._staffLineImage, (x, y), self))
         
     def _initializeScoreNotes(self):
         self._notes = [ScoreNote(note)
@@ -122,24 +112,6 @@ class SongScore(pyglet.graphics.Batch):
         else:
             noteCentreIndex = noteIndex
         return self._naturalNoteheadOrigins[noteCentreIndex][1]
-
-    def drawRect(self, pixLeft, pixRight, pixTop, pixBot,
-            colour=(255, 255, 255, 255)):
-        self._log.debug("_drawRect({}, {}, {}, {})".format(
-                pixLeft, pixRight, pixTop, pixBot))
-
-        vertexList = self.add(4, pyglet.gl.GL_QUADS, None,
-                ('v2i', [pixLeft, pixTop,
-                         pixRight, pixTop,
-                         pixRight, pixBot,
-                         pixLeft, pixBot]),
-                ('c4B', 4*colour))
-        self._vertexLists.append(vertexList)
-
-    def clear(self):
-        for vertexList in self._vertexLists:
-            vertexList.delete()
-        del self._vertexLists[:]
 
     def _updateState(self):
         self._log.debug("_updateState()")
