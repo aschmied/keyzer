@@ -33,13 +33,9 @@ def parseArgs():
     return args
 
 def probeMidiAndPrint():
-    midiin = midi.InputConnection()
-    inPorts = midiin.probeMidiPorts()
     midiout = midi.OutputConnection()
     outPorts = midiout.probeMidiPorts()
     printPort = lambda p: print("\t{}: {}".format(p.getNumber(), p.getName()))
-    print("Input ports")
-    map(printPort, inPorts)
     print("Output ports")
     map(printPort, outPorts)
 
