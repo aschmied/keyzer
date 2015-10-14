@@ -1,5 +1,4 @@
 MAJOR FEATURES
--audio/visual track selection
 -playback speed adjustment
 -scoring
 -error/success feedback
@@ -10,6 +9,8 @@ MINOR FEATURES
 
 CODE IMPROVEMENTS
 -clean up the Attachable stuff
+-use width = None/height = None in ScreenObject to indicate no preferred width/height
 
 LOW PRIORITY
 -investigate drawing the entire score as GL_RECTs and moving the viewport to scroll the notes
+-investigate SimpleSynth: http://notahat.com/simplesynth/
