@@ -27,8 +27,29 @@ class DrawingSurface(pyglet.graphics.Batch):
                          pixRight, pixTop,
                          pixRight, pixBottom,
                          pixLeft, pixBottom]),
-                ('c4B', 4*colour))
+                ('c4B', 4 * colour))
         self._vertexLists.append(vertexList)
+
+    def drawLine(self, x0, y0, x1, y1, colour=(255, 255, 255, 255)):
+        vertexList = self.add(2, pyglet.gl.GL_LINES, None,
+                ('v2i', [x0, y0, x1, y1]),
+                ('c4B', 2 * colour))
+        self._vertexLists.append(vertexList)
+
+    def drawBox(self, x0, y0, x1, y1, colour=(255, 255, 255, 255)):
+        self.drawLine(x0, y0, x1, y0, colour)
+        self.drawLine(x1, y0, x1, y1, colour)
+        self.drawLine(x1, y1, x0, y1, colour)
+        self.drawLine(x0, y1, x0, y0, colour)
+
+    def drawText(self, text="",
+        fontName=None, fontSize=None, bold=False, italic=False,
+        colour=(255, 255, 255, 255), x=0, y=0,
+        anchorX="left", anchorY="baseline"):
+        label = pyglet.text.Label(text, fontName, fontSize, bold, italic,
+                                  colour, x, y, anchor_x=anchorX, anchor_y=anchorY,
+                                  batch=self)
+        self._vertexLists.append(label)
 
     def clear(self):
         for vertexList in self._vertexLists:
