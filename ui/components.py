@@ -1,3 +1,7 @@
+# Copyright (c) 2015, Anthony Schmieder
+# Use of this source code is governed by the 2-clause BSD license that
+# can be found in the LICENSE.txt file.
+
 import pyglet
 
 class Sprite(pyglet.sprite.Sprite):
@@ -30,3 +34,82 @@ class DrawingSurface(pyglet.graphics.Batch):
         for vertexList in self._vertexLists:
             vertexList.delete()
         del self._vertexLists[:]
+
+class ScreenObject(object):
+    """
+    An object that may be added to a Layout.
+    """
+
+    def __init__(self):
+        self._x = 0
+        self._y = 0
+        self._width = 0
+        self._height = 0
+
+    def move(self, x, y):
+        self._x = x
+        self._y = y
+
+    def resize(self, width, height):
+        self._width = width
+        self._height = height
+
+    def x(self):
+        return self._x
+
+    def y(self):
+        return self._y
+
+    def width(self):
+        return self._width
+
+    def height(self):
+        return self._height
+
+    def update(self, drawingSurface):
+        raise RuntimeError("Method not implemented")
+
+
+class VerticalLayout(ScreenObject):
+
+    def __init__(self):
+        print "VerticalLayout.init"
+        super(VerticalLayout, self).__init__()
+        self._ycursor = 0
+        self._children = []
+
+    def add(self, screenObject):
+        self._children.append(screenObject)
+        screenObject.move(self._x, self._ycursor)
+        self._ycursor += screenObject.height()
+
+    def move(self, x, y):
+        dx = x - self._x
+        dy = y - self._y
+        self._x += x
+        self._y += y
+        for child in self._children:
+            child.move(child.x() + dx, child.y() + dy)
+        self._ycursor += dy
+
+    def resize(self, width, height):
+        self._width = width
+        self._height = height
+        for child in self._children:
+            child.resize(width, child.height())
+
+    def x(self):
+        return self._x
+
+    def y(self):
+        return self._y
+
+    def width(self):
+        return self._width
+
+    def height(self):
+        return self._height
+
+    def update(self, drawingSurface):
+        for child in self._children:
+            child.update(drawingSurface)
