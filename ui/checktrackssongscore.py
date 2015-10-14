@@ -45,17 +45,23 @@ class GuiProgram(HorizontalLayout):
     """
 
     def __init__(self, trackIndex, channelId, programId, notes, width):
+        """
+        GuiProgram determines its own height based on the range of notes used.
+        """
         super(GuiProgram, self).__init__()
-        self.resize(width, 130)
 
-        controlsWidth = 30
+        controlsWidth = 70
 
         notesWidth = width - controlsWidth
         self._notes = GuiProgramNotes(notes, notesWidth)
-        
-        controlsHeight = self._notes.height()
+        # GuiProgramNotes determines the height of GuiProgramControls and
+        # GuiProgram.
+        height = self._notes.height()
+
         self._controls = GuiProgramControls(trackIndex, channelId, programId,
-                                            controlsWidth, controlsHeight)
+                                            controlsWidth, height)
+
+        self.resize(width, height)
 
         self.add(self._controls)
         self.add(self._notes)
@@ -69,11 +75,19 @@ class GuiProgramControls(ScreenObject):
     def __init__(self, trackIndex, channelId, programId, width, height):
         super(GuiProgramControls, self).__init__()
         self.resize(width, height)
+        self._trackIndex = trackIndex
+        self._channelId = channelId
+        self._programId = programId
 
     def update(self, drawingSurface):
-        pass
-        # drawingSurface.drawRect(self._x, self._x + self._width,
-        #                         self._y, self._y + self._height)
+        text = "t{} c{} p{}".format(self._trackIndex, self._channelId, self._programId)
+        textX = self._x
+        textY = self._y + (self._height / 2)
+        drawingSurface.drawText(text=text, fontName="Arial", fontSize=10,
+                                x=textX, y=textY, anchorY="center")
+        drawingSurface.drawBox(self._x, self._y,
+                               self._x + self._width, self._y + self._height,
+                               colour=(128, 128, 128, 255))
 
 
 class GuiProgramNotes(ScreenObject):
@@ -87,12 +101,25 @@ class GuiProgramNotes(ScreenObject):
         """
         super(GuiProgramNotes, self).__init__()
         self._log = logging.getLogger("keyzer:GuiProgramNotes")
-        self.resize(width, 130)
 
         self._beatsOnScreen = 24
         self.minVisibleTick = 0
         self.maxVisibleTick = 0
         
+        minNoteId = 99999999
+        maxNoteId = -1
+        for note in notes:
+            if note.noteIndex < minNoteId:
+                minNoteId = note.noteIndex
+            if note.noteIndex > maxNoteId:
+                maxNoteId = note.noteIndex
+        self._minNoteId = minNoteId
+        self._maxNoteId = maxNoteId
+        heightPerNote = 2
+        height = heightPerNote * (maxNoteId - minNoteId + 1)
+
+        self.resize(width, height)
+
         self._guiNotes = [GuiNote(self, self, note) for note in notes]
 
     def update(self, drawingSurface):
@@ -101,6 +128,10 @@ class GuiProgramNotes(ScreenObject):
         self.minVisibleTick = PlayingSongState.getCurrentTick()
         ticksOnScreen = self._beatsOnScreen * PlayingSongState.getTicksPerBeat()
         self.maxVisibleTick = self.minVisibleTick + ticksOnScreen
+
+        drawingSurface.drawBox(self._x, self._y,
+                               self._x + self._width, self._y + self._height,
+                               colour=(128, 128, 128, 255))
 
         for note in self._guiNotes:
             note.update(drawingSurface)
@@ -128,10 +159,11 @@ class GuiNote(object):
         return self._guiProgramNotes.x() + percent * widthPixels
 
     def getYpixelForNoteIndex(self, noteIndex):
-        minY = self._guiProgramNotes.y()
+        minY = self._guiProgramNotes._y
         programHeight = self._guiProgramNotes._height
-        maxMidiNoteNumber = 127
-        percent = float(noteIndex) / 127
+        minNoteId = self._guiProgramNotes._minNoteId
+        maxNoteId = self._guiProgramNotes._maxNoteId
+        percent = float(noteIndex - minNoteId) / (maxNoteId - minNoteId)
         return minY + percent * programHeight
 
     def updatePosition(self):
