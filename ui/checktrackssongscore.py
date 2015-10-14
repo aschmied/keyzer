@@ -6,6 +6,7 @@ import logging
 import pyglet
 
 from ui.components import DrawingSurface
+from ui.components import HorizontalLayout
 from ui.components import ScreenObject
 from ui.components import VerticalLayout
 from playingsongstate import PlayingSongState
@@ -18,9 +19,6 @@ class CheckTracksSongScore(VerticalLayout):
         self._log = logging.getLogger("keyzer:CheckTracksSongScore")
         self.move(x, y)
         self.resize(width, height)
-        self._beatsOnScreen = 24
-        self.minVisibleTick = 0
-        self.maxVisibleTick = 0
         self._sequence = sequence
         for track in sequence:
             trackIndex = track.trackIndex
@@ -28,15 +26,11 @@ class CheckTracksSongScore(VerticalLayout):
                 channelId = channel.channelId
                 for programId in channel.getPrograms():
                     notes = channel.getNotesForProgram(programId)
-                    guiProgram = GuiProgram(trackIndex, channelId, programId, notes, self, width)
+                    guiProgram = GuiProgram(trackIndex, channelId, programId, notes, width)
                     self.add(guiProgram)
         self._drawingSurface = DrawingSurface()
 
     def update(self, dt):
-        self.minVisibleTick = PlayingSongState.getCurrentTick()
-        ticksOnScreen = self._beatsOnScreen * self._sequence.ticksPerBeat
-        self.maxVisibleTick = self.minVisibleTick + ticksOnScreen
-
         self._drawingSurface.clear()
         super(CheckTracksSongScore, self).update(self._drawingSurface)
 
@@ -44,32 +38,79 @@ class CheckTracksSongScore(VerticalLayout):
         self._drawingSurface.draw()
 
 
-class GuiProgram(ScreenObject):
+class GuiProgram(HorizontalLayout):
     """
-    Draws the notes for one program in a particular channel of a MIDI track
+    Draws controls, metadata, and notes for one program in a particular channel 
+    of a MIDI track.
     """
 
-    def __init__(self, trackIndex, channelId, programId, notes, visibleTickSource, width):
+    def __init__(self, trackIndex, channelId, programId, notes, width):
+        super(GuiProgram, self).__init__()
+        self.resize(width, 130)
+
+        controlsWidth = 30
+
+        notesWidth = width - controlsWidth
+        self._notes = GuiProgramNotes(notes, notesWidth)
+        
+        controlsHeight = self._notes.height()
+        self._controls = GuiProgramControls(trackIndex, channelId, programId,
+                                            controlsWidth, controlsHeight)
+
+        self.add(self._controls)
+        self.add(self._notes)
+
+
+class GuiProgramControls(ScreenObject):
+    """
+    Draws controls and metadata.
+    """
+
+    def __init__(self, trackIndex, channelId, programId, width, height):
+        super(GuiProgramControls, self).__init__()
+        self.resize(width, height)
+
+    def update(self, drawingSurface):
+        pass
+        # drawingSurface.drawRect(self._x, self._x + self._width,
+        #                         self._y, self._y + self._height)
+
+
+class GuiProgramNotes(ScreenObject):
+    """
+    Draws notes.
+    """
+
+    def __init__(self, notes, width):
         """
         visibleTickSource must provide minVisibleTick and maxVisibleTick members
         """
-        super(GuiProgram, self).__init__()
+        super(GuiProgramNotes, self).__init__()
+        self._log = logging.getLogger("keyzer:GuiProgramNotes")
         self.resize(width, 130)
-        self._trackIndex = trackIndex
-        self._channelId = channelId
-        self._programId = programId
-        self._guiNotes = [GuiNote(self, visibleTickSource, note) for note in notes]
+
+        self._beatsOnScreen = 24
+        self.minVisibleTick = 0
+        self.maxVisibleTick = 0
+        
+        self._guiNotes = [GuiNote(self, self, note) for note in notes]
 
     def update(self, drawingSurface):
+        # TODO: this is computed for each track/channel/program tuple. It should
+        # be done once per frame.
+        self.minVisibleTick = PlayingSongState.getCurrentTick()
+        ticksOnScreen = self._beatsOnScreen * PlayingSongState.getTicksPerBeat()
+        self.maxVisibleTick = self.minVisibleTick + ticksOnScreen
+
         for note in self._guiNotes:
             note.update(drawingSurface)
 
 
 class GuiNote(object):
 
-    def __init__(self, guiProgram, visibleTickSource, sequenceNote):
+    def __init__(self, guiProgramNotes, visibleTickSource, sequenceNote):
         self._log = logging.getLogger("keyzer:GuiNote")
-        self._guiProgram = guiProgram
+        self._guiProgramNotes = guiProgramNotes
         self._visibleTickSource = visibleTickSource
         self._sequenceNote = sequenceNote
 
@@ -82,13 +123,13 @@ class GuiNote(object):
         minVisibleTick = self._visibleTickSource.minVisibleTick
         maxVisibleTick = self._visibleTickSource.maxVisibleTick
         widthTicks = maxVisibleTick - minVisibleTick
-        widthPixels = self._guiProgram._width
+        widthPixels = self._guiProgramNotes._width
         percent = float(tick - minVisibleTick) / widthTicks
-        return self._guiProgram.x() + percent * widthPixels
+        return self._guiProgramNotes.x() + percent * widthPixels
 
     def getYpixelForNoteIndex(self, noteIndex):
-        minY = self._guiProgram.y()
-        programHeight = self._guiProgram._height
+        minY = self._guiProgramNotes.y()
+        programHeight = self._guiProgramNotes._height
         maxMidiNoteNumber = 127
         percent = float(noteIndex) / 127
         return minY + percent * programHeight
@@ -109,7 +150,7 @@ class GuiNote(object):
                 offTick >= visibleTickSource.minVisibleTick
 
     def _draw(self, drawingSurface):
-        left = int(self._x)
+        left = max(self._guiProgramNotes._x, int(self._x))
         right = int(self._x + self._width)
         top = int(self._y)
         bottom = int(self._y + self._height)
