@@ -61,7 +61,7 @@ def main(argv):
     midiplayer.attach(PlayingSongState)
 
     noteSequence = midiplayer.getNoteSequence()
-    app = CheckTracksApplicationWindow()
+    app = CheckTracksApplicationWindow(noteSequence)
 
     playerThread = threading.Thread(target=midiplayer.play)
     playerThread.start()
