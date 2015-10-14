@@ -122,10 +122,6 @@ class SongScore(DrawingSurface):
 
     def _updateScreen(self):
         self._log.debug("_updateScreen()")
-
-        #for staffLine in self._staffLines:
-            #staffLine.update(dt)
-
         self.clear()
 
         for note in self._notes:
