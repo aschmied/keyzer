@@ -71,9 +71,11 @@ class ScreenObject(object):
 
 
 class VerticalLayout(ScreenObject):
+    """
+    Lays out screenObjects from top to bottom.
+    """
 
     def __init__(self):
-        print "VerticalLayout.init"
         super(VerticalLayout, self).__init__()
         self._ycursor = 0
         self._children = []
@@ -86,8 +88,8 @@ class VerticalLayout(ScreenObject):
     def move(self, x, y):
         dx = x - self._x
         dy = y - self._y
-        self._x += x
-        self._y += y
+        self._x += dx
+        self._y += dy
         for child in self._children:
             child.move(child.x() + dx, child.y() + dy)
         self._ycursor += dy
@@ -98,17 +100,40 @@ class VerticalLayout(ScreenObject):
         for child in self._children:
             child.resize(width, child.height())
 
-    def x(self):
-        return self._x
+    def update(self, drawingSurface):
+        for child in self._children:
+            child.update(drawingSurface)
 
-    def y(self):
-        return self._y
 
-    def width(self):
-        return self._width
+class HorizontalLayout(ScreenObject):
+    """
+    Lays out screenObjects from left to right.
+    """
 
-    def height(self):
-        return self._height
+    def __init__(self):
+        super(HorizontalLayout, self).__init__()
+        self._xcursor = 0
+        self._children = []
+
+    def add(self, screenObject):
+        self._children.append(screenObject)
+        screenObject.move(self._xcursor, self._y)
+        self._xcursor += screenObject.width()
+
+    def move(self, x, y):
+        dx = x - self._x
+        dy = y - self._y
+        self._x += dx
+        self._y += dy
+        for child in self._children:
+            child.move(child.x() + dx, child.y() + dy)
+        self._xcursor += dx
+
+    def resize(self, width, height):
+        self._width = width
+        self._height = height
+        for child in self._children:
+            child.resize(child.width(), height)
 
     def update(self, drawingSurface):
         for child in self._children:
