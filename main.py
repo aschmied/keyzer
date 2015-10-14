@@ -68,8 +68,8 @@ def extractTracksAndPrint(songPath):
     noteSequence = midiplayer.getNoteSequence()
     for track in noteSequence:
         for channel in track:
-            tix = track._trackIndex
-            cix = channel._channelId
+            tix = track.trackIndex
+            cix = channel.channelId
             pgms = channel.getPrograms()
             if len(pgms) > 0:
                 print("t{}c{}".format(tix, cix))

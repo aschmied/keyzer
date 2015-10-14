@@ -44,6 +44,11 @@ This is currently a prototype. Only basic functionality has been implemented and
 * Generate MIDI events using your computer's keyboard
 * http://www.manyetas.com/creed/midikeys.html
 
+### FluidSynth
+
+* A software synthesizer. Lets you play MIDI audio on your computer's speakers. You can use this if your MIDI instrument does not have builtin speakers.
+* http://www.fluidsynth.org/
+
 
 # Usage
 

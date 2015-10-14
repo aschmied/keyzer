@@ -44,7 +44,7 @@ class Channel(list):
 
     def __init__(self, pyMidiTrack, channelId):
         super(Channel, self).__init__()
-        self._channelId = channelId
+        self.channelId = channelId
 
         program = _DEFAULT_MIDI_PROGRAM
         noteOnEvents = 88*[None]
@@ -52,7 +52,7 @@ class Channel(list):
             if not isinstance(event, midi.events.Event):
                 continue
 
-            if not event.channel == self._channelId:
+            if not event.channel == self.channelId:
                 continue
 
             if isinstance(event, midi.events.ProgramChangeEvent):
@@ -92,7 +92,7 @@ class Track(list):
     
     def __init__(self, trackIndex, pyMidiTrack):
         super(Track, self).__init__()
-        self._trackIndex = trackIndex
+        self.trackIndex = trackIndex
         for channelId in range(_MAX_MIDI_CHANNELS):
             self.append(Channel(pyMidiTrack, channelId))
 
