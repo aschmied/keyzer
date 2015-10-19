@@ -36,6 +36,8 @@ def parseArgs():
                         help='Channel number in TRACK')
     parser.add_argument('--program', type=int, default=-1,
                         help='Program number in TRACK/CHANNEL')
+    parser.add_argument('--speed', type=float, default=1.0,
+                        help='Multiply tempo by SPEED')
     parser.add_argument('--debug', action='store_true',
                         help='Print debug messages')
     args = parser.parse_args()
@@ -102,7 +104,7 @@ def main(argv):
     midiout = midi.OutputConnection()
     outPorts = midiout.probeMidiPorts()
     midiout.openPort(outPorts[args.out_port])
-    midiplayer = MidiPlayer(midiout, args.song_path)
+    midiplayer = MidiPlayer(midiout, args.song_path, args.speed)
     midiplayer.attach(PlayingSongState)
 
     # TODO: consider moving note sequence and ticks per beat out of
