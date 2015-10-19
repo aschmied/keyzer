@@ -112,11 +112,12 @@ class Sequence(list):
 
 class MidiPlayer(Attachable):
 
-    def __init__(self, midioutConnection, filename):
+    def __init__(self, midioutConnection, filename, tempoMultiplier=1.0):
         super(MidiPlayer, self).__init__()
         self._log = logging.getLogger("keyzer:MidiPlayer")
         self._midiout = midioutConnection
         self._filename = filename
+        self._tempoMultiplier = float(tempoMultiplier)
         self._pattern = midi.read_midifile(filename)
         self._beatsPerMin = _DEFAULT_BEATSPERMIN
         self._ticksPerBeat = self._pattern.resolution
@@ -129,9 +130,9 @@ class MidiPlayer(Attachable):
         super(MidiPlayer, self).attach(objectToAttach)
 
     def onTempoChange(self, beatsPerMinute):
-        self._log.debug("onTempoChange({})".format(beatsPerMinute))
-        self._beatsPerMin = float(beatsPerMinute)
-        self._ticksPerFrame = self.secondsToTicks(self._beatsPerMin, _SECONDS_PER_FRAME)
+        self._log.debug("onTempoChange({}) multiplier {}".format(
+                        beatsPerMinute, self._tempoMultiplier))
+        self._beatsPerMin = self._tempoMultiplier * beatsPerMinute
 
     def play(self):
         self.onTempoChange(_DEFAULT_BEATSPERMIN)

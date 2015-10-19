@@ -1,5 +1,4 @@
 MAJOR FEATURES
--playback speed adjustment
 -scoring
 -error/success feedback
 -sharps and flats
@@ -8,7 +7,7 @@ MINOR FEATURES
 -mute the track you're learning
 
 CODE IMPROVEMENTS
--clean up the Attachable stuff
+-clean up the Attachable stuff: allow only one listener where appropriate
 -use width = None/height = None in ScreenObject to indicate no preferred width/height
 
 LOW PRIORITY
