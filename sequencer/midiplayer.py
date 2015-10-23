@@ -47,7 +47,16 @@ class Channel(list):
         self.channelId = channelId
 
         program = _DEFAULT_MIDI_PROGRAM
+
         noteOnEvents = 88*[None]
+        def addNoteOn(onTick, program, noteIndex, velocity):
+            noteOnEvents[index] = Note(onTick, -1, program, noteIndex, velocity)
+        def addNoteOff(offTick, noteIndex):
+            note = noteOnEvents[index]
+            note.offTick = offTick
+            self.append(note)
+            noteOnEvents[index] = None
+
         for event in pyMidiTrack:
             if not isinstance(event, midi.events.Event):
                 continue
@@ -61,19 +70,19 @@ class Channel(list):
             if isinstance(event, midi.events.NoteOnEvent):
                 pitch = event.get_pitch()
                 index = util.music.midiPitchToNoteIndex(pitch)
-                if noteOnEvents[index] is None:
-                    velocity = event.get_velocity()
-                    tick = event.tick
-                    noteOnEvents[index] = Note(tick, -1, program, index, velocity)
+                velocity = event.get_velocity()
+                tick = event.tick
+                if velocity > 0 and noteOnEvents[index] is None:
+                    addNoteOn(tick, program, index, velocity)
+                elif velocity == 0 and noteOnEvents[index] is not None:
+                    addNoteOff(tick, index)
 
             elif isinstance(event, midi.events.NoteOffEvent):
                 pitch = event.get_pitch()
                 index = util.music.midiPitchToNoteIndex(pitch)
-                if not noteOnEvents[index] is None:
-                    note = noteOnEvents[index]
-                    note.offTick = event.tick
-                    self.append(note)
-                    noteOnEvents[index] = None
+                tick = event.tick
+                if noteOnEvents[index] is not None:
+                    addNoteOff(tick, index)
             else:
                 pass
 
@@ -157,9 +166,9 @@ class MidiPlayer(Attachable):
                     if rawMidiEvent is not None:
                         self._midiout.handleMidiEvent(rawMidiEvent)
                     currentTick = event.tick
-                    (eventTime, event) = eventIter.next()
                     for a in self._getAttached():
                         a.onTickUpdate(currentTick)
+                    (eventTime, event) = eventIter.next()
                     elapsedTime = time.time() - startTime
 
                 # sleep and update GUI until next event
